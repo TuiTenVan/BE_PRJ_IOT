@@ -42,7 +42,7 @@ Hệ thống này được xây dựng để quản lý việc điểm danh củ
 
 - Cấu hình `application.yaml` để kết nối với AWS RDS:
   ```yaml
-      url: jdbc:mysql://iot.cdo2go0s62es.ap-southeast-2.rds.amazonaws.com:3306/iot
+    url: jdbc:mysql://iot.cdo2go0s62es.ap-southeast-2.rds.amazonaws.com:3306/iot
     username: admin
     password: 12345678
   ```
