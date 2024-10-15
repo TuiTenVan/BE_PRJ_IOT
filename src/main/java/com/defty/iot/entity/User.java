@@ -38,7 +38,7 @@ public class User extends BaseEntity {
     @Column(name = "Phone", length = 20)
     private String phone;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Attendance> attendances;
 
 }

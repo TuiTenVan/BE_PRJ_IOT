@@ -6,13 +6,16 @@ import com.defty.iot.entity.User;
 import com.defty.iot.mapper.UserMapper;
 import com.defty.iot.repository.IUserRepository;
 import com.defty.iot.service.IUserService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService implements IUserService {
     IUserRepository userRepository;
     UserMapper userMapper;
@@ -24,9 +27,9 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public Page<UserResponse> findUser(String name, String studentCode, Pageable pageable) {
-        Page<User> userPage = userRepository.findUser(name, studentCode, pageable);
-        return userPage.map(user -> userMapper.toUserResponse(user));
+    public Page<UserResponse> findUser(String username, String studentCode, Pageable pageable) {
+        Page<User> userPage = userRepository.findUser(username, studentCode, pageable);
+        return userPage.map(userMapper::toUserResponse);
     }
 
     @Override

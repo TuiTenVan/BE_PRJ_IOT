@@ -26,12 +26,12 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("@requiredPermission.checkPermission('GET_ALL_USERS')")
-    public ResponseEntity<?> getAllUsers(@RequestParam(required = false, defaultValue = "") String name,
-                                         @RequestParam(required = false, defaultValue = "") String studentCode,
+    public ResponseEntity<?> getAllUsers(@RequestParam(value = "username", required = false) String username,
+                                         @RequestParam(value = "studentCode", required = false) String studentCode,
                                          @RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<UserResponse> userResponses = userService.findUser(name, studentCode, pageable);
+        Page<UserResponse> userResponses = userService.findUser(username, studentCode, pageable);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(HttpStatus.OK.getReasonPhrase())

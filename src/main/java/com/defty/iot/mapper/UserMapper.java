@@ -17,7 +17,6 @@ public class UserMapper {
     public UserResponse toUserResponse(User user) {
         return modelMapper.map(user, UserResponse.class);
     }
-
     public User toUser(UserRequest userRequest) {
         return modelMapper.map(userRequest, User.class);
     }

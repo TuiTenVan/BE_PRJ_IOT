@@ -15,6 +15,7 @@ public class UserResponse {
     String username;
     String gender;
     String studentCode;
+    String phone;
     String className;
     Date createdDate;
 }
