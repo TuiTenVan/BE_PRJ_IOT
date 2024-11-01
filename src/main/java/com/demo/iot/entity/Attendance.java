@@ -40,5 +40,6 @@ public class Attendance{
     @Enumerated(EnumType.STRING)
     Shift shift;
 
+    @Column
     boolean onTime;
 }

@@ -1,12 +1,12 @@
 package com.demo.iot.service;
 
 import com.demo.iot.dto.response.AttendanceResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
 
 public interface IAttendanceService {
     void attendance(String rfidCode);
-    List<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime);
+    Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, Pageable pageable);
 }

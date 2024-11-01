@@ -46,6 +46,7 @@ public class WebSecurityConfig {
                         .requestMatchers(POST, String.format("%s/attendance", apiPrefix)).permitAll()
                         .requestMatchers(POST, String.format("%s/rfid/**", apiPrefix)).permitAll()
                         .requestMatchers(DELETE, String.format("%s/rfid/**", apiPrefix)).permitAll()
+                        .requestMatchers(GET, String.format("%s/shifts", apiPrefix)).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)

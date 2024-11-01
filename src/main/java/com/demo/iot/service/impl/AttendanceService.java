@@ -10,13 +10,18 @@ import com.demo.iot.service.IAttendanceService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +36,12 @@ public class AttendanceService implements IAttendanceService {
             User user = userOptional.get();
             LocalDate today = LocalDate.now();
             LocalTime currentTime = LocalTime.now();
-            Shift shift = null;
+            Shift shift;
             if (currentTime.isAfter(LocalTime.of(8, 0)) && currentTime.isBefore(LocalTime.of(11, 0))) {
                 shift = Shift.Morning;
             } else if (currentTime.isAfter(LocalTime.of(14, 0)) && currentTime.isBefore(LocalTime.of(17, 0))) {
                 shift = Shift.Afternoon;
-            }
-            else{
+            } else{
                 shift = Shift.OverTime;
             }
             Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndDateAndShift(user, today, shift);
@@ -70,18 +74,33 @@ public class AttendanceService implements IAttendanceService {
 
 
     @Override
-    public List<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
-        List<Attendance> attendanceList = attendanceRepository.findAttendanceByDateAndTime(startDate, endDate, startTime, endTime);
-        List<AttendanceResponse> attendanceResponseList = new ArrayList<>();
-        for (Attendance attendance : attendanceList) {
-            AttendanceResponse attendanceResponse = AttendanceResponse.builder()
-                    .rfidCode(attendance.getUser().getRfidCode())
-                    .fullName(attendance.getUser().getUsername())
-                    .attendanceTimeIn(attendance.getTimeIn())
-                    .attendanceTimeOut(attendance.getTimeOut())
-                    .build();
-            attendanceResponseList.add(attendanceResponse);
+    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, Pageable pageable) {
+        Page<Attendance> attendances;
+        if (startDate == null && endDate == null && shift == null && username == null) {
+            attendances = attendanceRepository.findAll(pageable);
+        } else {
+            if(shift != null){
+                Shift convertShift = Shift.valueOf(shift);
+                attendances = attendanceRepository.filterAttendance(startDate, endDate, convertShift, username, pageable);
+            }
+            else{
+                attendances = attendanceRepository.filterAttendance(startDate, endDate, null, username, pageable);
+            }
         }
-        return attendanceResponseList;
+        List<AttendanceResponse> attendanceResponseList = attendances.getContent().stream()
+                .map(attendance -> AttendanceResponse.builder()
+                        .rfidCode(attendance.getUser().getRfidCode())
+                        .fullName(attendance.getUser().getUsername())
+                        .attendanceTimeIn(LocalTime.parse(attendance.getTimeIn().format(DateTimeFormatter.ofPattern("HH:mm:ss"))))
+                        .date(attendance.getDate().toString())
+                        .shift(attendance.getShift())
+                        .attendanceTimeOut(attendance.getTimeOut() != null ?
+                                LocalTime.parse(attendance.getTimeOut().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) : null)
+                        .onTime(String.valueOf(attendance.isOnTime()))
+                        .build())
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(attendanceResponseList, pageable, attendances.getTotalElements());
     }
+
 }

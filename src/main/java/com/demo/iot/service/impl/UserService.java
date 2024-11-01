@@ -27,8 +27,12 @@ public class UserService implements IUserService {
     public void createRfid(String rfidCode) {
         Optional<User> user = userRepository.findByRfidCode(rfidCode);
         if (user.isEmpty()) {
-            User userEntity = User.builder().rfidCode(rfidCode).build();
+            User userEntity = User.builder()
+                    .rfidCode(rfidCode)
+                    .build();
             userRepository.save(userEntity);
+        }else{
+            throw new RuntimeException("Rfid code already exists");
         }
     }
 
@@ -50,8 +54,7 @@ public class UserService implements IUserService {
         Page<User> userPage;
         if(username == null && studentCode == null) {
             userPage = userRepository.findAll(pageable);
-        }
-        else{
+        }else{
             userPage = userRepository.findUser(username, studentCode, pageable);
         }
         return userPage.map(userMapper::toUserResponse);

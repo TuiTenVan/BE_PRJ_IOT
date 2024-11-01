@@ -72,6 +72,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/attendance", apiPrefix), "POST"),
                 Pair.of(String.format("%s/rfid/.*", apiPrefix), "POST"),
                 Pair.of(String.format("%s/rfid/.*", apiPrefix), "DELETE"),
+                Pair.of(String.format("%s/shifts", apiPrefix), "GET"),
                 Pair.of(String.format("%s/account/check-account", apiPrefix), "GET"),
 
                 // Swagger

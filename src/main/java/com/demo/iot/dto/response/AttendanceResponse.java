@@ -1,5 +1,6 @@
 package com.demo.iot.dto.response;
 
+import com.demo.iot.common.Shift;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -14,6 +15,8 @@ public class AttendanceResponse {
     String rfidCode;
     String fullName;
     LocalTime attendanceTimeIn;
-    String attendanceStatus;
+    String onTime;
+    Shift shift;
+    String date;
     LocalTime attendanceTimeOut;
 }
