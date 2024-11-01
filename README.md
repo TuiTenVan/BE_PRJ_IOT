@@ -1,34 +1,30 @@
 
 
-# Hệ thống Quản lý Điểm danh bằng Thẻ từ với Spring Boot, React và AWS
+# Hệ thống Quản lý Điểm danh bằng Thẻ từ với Spring Boot, React và MySQL
 
 ## Mục tiêu của Dự án
 
-Hệ thống này được xây dựng để quản lý việc điểm danh của người dùng bằng cách sử dụng thẻ từ. Backend sử dụng Spring Boot, frontend dùng React, và AWS để triển khai và lưu trữ dữ liệu. Trang admin cung cấp giao diện thân thiện giúp quản trị viên dễ dàng quản lý thông tin người dùng và lịch sử điểm danh.
+Hệ thống này được xây dựng để quản lý việc điểm danh của người dùng bằng cách sử dụng thẻ từ. Backend sử dụng Spring Boot, frontend dùng React, và MySQLlưu trữ dữ liệu. Trang admin cung cấp giao diện thân thiện giúp quản trị viên dễ dàng quản lý thông tin người dùng và lịch sử điểm danh.
 
 ## Tính năng
 
 - **Điểm danh tự động**: ESP32 và RFID ghi nhận thông tin người dùng và thời gian điểm danh.
 - **Trang admin quản lý**: Giao diện React để theo dõi và quản lý người dùng cũng như lịch sử điểm danh.
-- **Tích hợp AWS**: Sử dụng AWS RDS để lưu trữ dữ liệu và AWS EC2 để triển khai ứng dụng.
+- **MySQL**: Sử dụng MySQL để lưu trữ dữ liệu 
 - **Quản lý người dùng**: Thêm, sửa, xóa, và cập nhật thông tin người dùng.
 - **Xem lịch sử điểm danh**: Lưu trữ và xem lịch sử điểm danh theo thời gian thực.
 
 ## Cấu trúc Dự án
 
-1. **Backend - Spring Boot**: REST API xử lý dữ liệu và lưu trữ trong AWS RDS.
+1. **Backend - Spring Boot**: REST API xử lý dữ liệu và lưu trữ trong MySQL.
 2. **Frontend - React**: Giao diện quản trị, tương tác với backend qua API.
-3. **AWS**: 
-   - **EC2**: Triển khai backend.
-   - **RDS**: Lưu trữ cơ sở dữ liệu điểm danh.
-   - **S3** *(tùy chọn)*: Lưu trữ tệp tĩnh hoặc ảnh.
+3. **MySQL**: Lưu trữ cơ sở dữ liệu điểm danh.
 
 ## Yêu cầu Hệ thống
 
 - **Spring Boot**: Java 11 hoặc 17
 - **React**: Node.js và npm
-- **AWS Account**: EC2, RDS
-- **MySQL**: Trên RDS (hoặc PostgreSQL)
+- **MySQL**: 8.0.33
 
 ## Hướng dẫn Cài đặt
 
@@ -40,11 +36,11 @@ Hệ thống này được xây dựng để quản lý việc điểm danh củ
   cd attendance-backend
   ```
 
-- Cấu hình `application.yaml` để kết nối với AWS RDS:
+- Cấu hình `application.yaml` để kết nối với MySQL:
   ```yaml
-    url: jdbc:mysql://iot.cdo2go0s62es.ap-southeast-2.rds.amazonaws.com:3306/iot
-    username: admin
-    password: 12345678
+    url: jdbc:mysql://localhost:3306/iot
+    username: 
+    password: 
   ```
 
 - Xây dựng và chạy ứng dụng Spring Boot:
@@ -69,12 +65,6 @@ Hệ thống này được xây dựng để quản lý việc điểm danh củ
   ```bash
   npm start
   ```
-
-### 3. Triển khai trên AWS
-
-- **EC2**: Đăng nhập vào AWS Console, tạo EC2 instance để chạy backend và deploy ứng dụng Spring Boot.
-- **RDS**: Cấu hình MySQL instance trên AWS RDS để lưu trữ dữ liệu.
-- **(Tùy chọn) S3**: Sử dụng để lưu trữ các tệp tĩnh nếu cần.
 
 ## Sử dụng
 
