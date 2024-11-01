@@ -17,8 +17,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.*;
 
 @Configuration
 @EnableWebSecurity
@@ -45,11 +44,15 @@ public class WebSecurityConfig {
                         .requestMatchers(POST, String.format("%s/account/refresh-token", apiPrefix)).permitAll()
                         .requestMatchers(GET, String.format("%s/account/check-account", apiPrefix)).permitAll()
                         .requestMatchers(POST, String.format("%s/attendance", apiPrefix)).permitAll()
+                        .requestMatchers(POST, String.format("%s/rfid/**", apiPrefix)).permitAll()
+                        .requestMatchers(DELETE, String.format("%s/rfid/**", apiPrefix)).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults());
-
+                .cors(Customizer.withDefaults())
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                );
         return http.build();
     }
 

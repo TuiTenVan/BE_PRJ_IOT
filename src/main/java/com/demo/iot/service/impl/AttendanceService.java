@@ -1,5 +1,6 @@
 package com.demo.iot.service.impl;
 
+import com.demo.iot.common.Shift;
 import com.demo.iot.dto.response.AttendanceResponse;
 import com.demo.iot.entity.Attendance;
 import com.demo.iot.entity.User;
@@ -29,20 +30,44 @@ public class AttendanceService implements IAttendanceService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             LocalDate today = LocalDate.now();
-            Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndDate(user, today);
-            if (existingAttendance.isPresent()) {
-                Attendance attendance = existingAttendance.get();
-                attendance.setTimeOut(LocalTime.now());
-                attendanceRepository.save(attendance);
-            } else {
-                Attendance attendance = new Attendance();
-                attendance.setUser(user);
-                attendance.setDate(today);
-                attendance.setTimeIn(LocalTime.now());
-                attendanceRepository.save(attendance);
+            LocalTime currentTime = LocalTime.now();
+            Shift shift = null;
+            if (currentTime.isAfter(LocalTime.of(8, 0)) && currentTime.isBefore(LocalTime.of(11, 0))) {
+                shift = Shift.Morning;
+            } else if (currentTime.isAfter(LocalTime.of(14, 0)) && currentTime.isBefore(LocalTime.of(17, 0))) {
+                shift = Shift.Afternoon;
             }
+            else{
+                shift = Shift.OverTime;
+            }
+            Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndDateAndShift(user, today, shift);
+            Attendance attendance;
+            if (existingAttendance.isPresent()) {
+                attendance = existingAttendance.get();
+                attendance.setTimeOut(currentTime);
+            } else {
+                attendance = getAttendance(user, today, currentTime, shift);
+            }
+            attendanceRepository.save(attendance);
         }
     }
+
+    private static Attendance getAttendance(User user, LocalDate today, LocalTime currentTime, Shift shift) {
+        Attendance attendance = new Attendance();
+        attendance.setUser(user);
+        attendance.setDate(today);
+        attendance.setTimeIn(currentTime);
+        attendance.setShift(shift);
+        boolean onTime = false;
+        if (shift == Shift.Morning) {
+            onTime = !currentTime.isAfter(LocalTime.of(8, 0));
+        } else if (shift == Shift.Afternoon) {
+            onTime = !currentTime.isAfter(LocalTime.of(17, 0));
+        }
+        attendance.setOnTime(onTime);
+        return attendance;
+    }
+
 
     @Override
     public List<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {

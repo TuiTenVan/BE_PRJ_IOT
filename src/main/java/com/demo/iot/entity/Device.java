@@ -15,6 +15,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Device extends BaseEntity {
-    @Column(name = "Location", length = 100)
-    private String location;
+    @Column
+    String location;
 }

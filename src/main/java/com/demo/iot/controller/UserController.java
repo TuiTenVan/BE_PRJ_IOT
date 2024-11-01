@@ -52,7 +52,7 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @PreAuthorize("@requiredPermission.checkPermission('UPDATE_USER')")
     public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody UserRequest userRequest) {
         UserResponse userResponse = userService.updateUser(id, userRequest);

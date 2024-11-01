@@ -6,12 +6,15 @@ import com.demo.iot.entity.User;
 import com.demo.iot.mapper.UserMapper;
 import com.demo.iot.repository.IUserRepository;
 import com.demo.iot.service.IUserService;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,22 @@ public class UserService implements IUserService {
     UserMapper userMapper;
 
     @Override
+    public void createRfid(String rfidCode) {
+        Optional<User> user = userRepository.findByRfidCode(rfidCode);
+        if (user.isEmpty()) {
+            User userEntity = User.builder().rfidCode(rfidCode).build();
+            userRepository.save(userEntity);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteRfid(String rfidCode) {
+        Optional<User> user = userRepository.findByRfidCode(rfidCode);
+        user.ifPresent(userRepository::delete);
+    }
+
+    @Override
     public void createUser(UserRequest userRequest) {
         User user = userMapper.toUser(userRequest);
         userRepository.save(user);
@@ -28,7 +47,13 @@ public class UserService implements IUserService {
 
     @Override
     public Page<UserResponse> findUser(String username, String studentCode, Pageable pageable) {
-        Page<User> userPage = userRepository.findUser(username, studentCode, pageable);
+        Page<User> userPage;
+        if(username == null && studentCode == null) {
+            userPage = userRepository.findAll(pageable);
+        }
+        else{
+            userPage = userRepository.findUser(username, studentCode, pageable);
+        }
         return userPage.map(userMapper::toUserResponse);
     }
 
@@ -48,6 +73,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Integer id) {
         userRepository.deleteById(id);
     }

@@ -21,13 +21,13 @@ public class RefreshToken extends BaseEntity {
     String refreshToken;
 
     @Column(nullable = false)
-    private Instant expiresAt;
+    Instant expiresAt;
 
     @Column(nullable = false)
-    private Boolean isRevoked = false;
+    Boolean isRevoked = false;
 
     @Column(nullable = false)
-    private Instant createdAt = Instant.now();
+    Instant createdAt = Instant.now();
 
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false, unique = true)

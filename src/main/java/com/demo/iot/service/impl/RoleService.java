@@ -14,10 +14,13 @@ import com.demo.iot.service.IRoleService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,20 +34,37 @@ public class RoleService implements IRoleService {
     IRolePermissionRepository rolePermissionRepository;
 
     @Override
-    public Set<RoleResponse> getAllRoles() {
-        return roleRepository.findAll().stream()
-                .map(role -> new RoleResponse(role.getId(), role.getName(), role.getDescription(), null))
-                .collect(Collectors.toSet());
+    public Page<RoleResponse> getAllRoles(String name, Pageable pageable) {
+        Page<Role> roles;
+        if (name != null && !name.isEmpty()) {
+            roles = roleRepository.findRole(name, pageable);
+        } else {
+            roles = roleRepository.findAll(pageable);
+        }
+        return roles.map(role -> new RoleResponse(
+                role.getId(),
+                role.getName(),
+                role.getDescription(),
+                null
+        ));
     }
 
     @Override
     public RoleResponse createRole(RoleRequest roleRequest) {
-        Role role = Role.builder()
-                .name(roleRequest.getName())
-                .description(roleRequest.getDescription())
-                .build();
-        roleRepository.save(role);
-        return new RoleResponse(role.getId(), role.getName(), role.getDescription(), null);
+        Optional<Role> role = roleRepository.findRoleByName(roleRequest.getName());
+        RoleResponse roleResponse;
+        if (role.isEmpty()) {
+            Role roleEntity = Role.builder()
+                    .name(roleRequest.getName())
+                    .description(roleRequest.getDescription())
+                    .build();
+            roleRepository.save(roleEntity);
+            roleResponse = new RoleResponse(roleEntity.getId(), roleEntity.getName(), roleEntity.getDescription(), null);
+        }
+        else{
+            throw new RuntimeException("Role name already exist");
+        }
+        return roleResponse;
     }
 
     @Override

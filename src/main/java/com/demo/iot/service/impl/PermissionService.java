@@ -10,9 +10,12 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,15 +26,28 @@ public class PermissionService implements IPermissionService {
 
     @Override
     public PermissionResponse createPermission(PermissionRequest permissionRequest) {
-        Permission permission = permissionMapper.toPermission(permissionRequest);
-        permissionRepository.save(permission);
-        return permissionMapper.toPermissionResponse(permission);
+        Optional<Permission> permission = permissionRepository.findPermissionByName(permissionRequest.getName());
+        PermissionResponse permissionResponse;
+        if(permission.isEmpty()) {
+            Permission permissionEntity = permissionMapper.toPermission(permissionRequest);
+            permissionRepository.save(permissionEntity);
+            permissionResponse = permissionMapper.toPermissionResponse(permissionEntity);
+        }
+        else{
+            throw new RuntimeException("Permission name already exist");
+        }
+        return permissionResponse;
     }
 
     @Override
-    public List<PermissionResponse> getAllPermissions() {
-        List<Permission> permissions = permissionRepository.findAll();
-        return permissions.stream().map(permissionMapper::toPermissionResponse).toList();
+    public Page<PermissionResponse> getAllPermissions(String name, Pageable pageable) {
+        Page<Permission> permissions;
+        if (name != null && !name.isEmpty()) {
+            permissions = permissionRepository.findPermission(name, pageable);
+        } else {
+            permissions = permissionRepository.findAll(pageable);
+        }
+        return permissions.map(permissionMapper::toPermissionResponse);
     }
 
     @Override

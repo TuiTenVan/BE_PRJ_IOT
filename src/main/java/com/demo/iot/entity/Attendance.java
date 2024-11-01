@@ -1,5 +1,6 @@
 package com.demo.iot.entity;
 
+import com.demo.iot.common.Shift;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.persistence.*;
@@ -36,7 +37,8 @@ public class Attendance{
     @Column
     LocalTime timeOut;
 
-    @Column
-    String status;
+    @Enumerated(EnumType.STRING)
+    Shift shift;
 
+    boolean onTime;
 }

@@ -18,4 +18,6 @@ public interface IUserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findByRfidCode(String username);
 
+    Optional<User> findByUsernameAndRfidCode(String username, String rfidCode);
+
 }

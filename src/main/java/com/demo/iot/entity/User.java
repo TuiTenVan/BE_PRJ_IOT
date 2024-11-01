@@ -18,27 +18,27 @@ import java.util.List;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class User extends BaseEntity {
     @Column(length = 100)
-    private String username;
+    String username;
 
-    @Column(name = "Student_Code", length = 50)
-    private String studentCode;
+    @Column
+    String studentCode;
 
-    @Column(name = "Class", length = 50)
-    private String className;
+    @Column
+    String className;
 
-    @Column(name = "RFID_Code", length = 50)
-    private String rfidCode;
+    @Column
+    String rfidCode;
 
-    @Column(name = "Email", length = 100)
-    private String email;
+    @Column
+    String email;
 
-    @Column(name = "Gender", length = 100)
-    private String gender;
+    @Column
+    String gender;
 
-    @Column(name = "Phone", length = 20)
-    private String phone;
+    @Column
+    String phone;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Attendance> attendances;
+    List<Attendance> attendances;
 
 }

@@ -15,5 +15,4 @@ public class UserRequest {
     String className;
     String gender;
     String studentCode;
-    String rfidCode;
 }
