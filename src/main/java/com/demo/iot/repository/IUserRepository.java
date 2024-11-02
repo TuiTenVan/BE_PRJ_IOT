@@ -17,7 +17,4 @@ public interface IUserRepository extends JpaRepository<User, Integer> {
     Page<User> findUser(@Param("username") String username, @Param("studentCode") String studentCode, Pageable pageable);
 
     Optional<User> findByRfidCode(String username);
-
-    Optional<User> findByUsernameAndRfidCode(String username, String rfidCode);
-
 }

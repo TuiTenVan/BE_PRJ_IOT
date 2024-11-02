@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,7 +31,7 @@ public class AttendanceService implements IAttendanceService {
 
     public void attendance(String rfidCode) {
         Optional<User> userOptional = userRepository.findByRfidCode(rfidCode);
-        if (userOptional.isPresent()) {
+        if (userOptional.isPresent() && userOptional.get().getUsername() != null && userOptional.get().getStudentCode() != null) {
             User user = userOptional.get();
             LocalDate today = LocalDate.now();
             LocalTime currentTime = LocalTime.now();
@@ -53,6 +52,9 @@ public class AttendanceService implements IAttendanceService {
                 attendance = getAttendance(user, today, currentTime, shift);
             }
             attendanceRepository.save(attendance);
+        }
+        else{
+            throw new RuntimeException("RFID code has no information");
         }
     }
 
