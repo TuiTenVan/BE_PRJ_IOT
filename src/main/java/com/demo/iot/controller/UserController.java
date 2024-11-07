@@ -41,6 +41,18 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("@requiredPermission.checkPermission('GET_USER')")
+    public ResponseEntity<?> getUserById(@PathVariable Integer id) {
+        UserResponse userResponse = userService.findUserById(id);
+        ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message(HttpStatus.OK.getReasonPhrase())
+                .data(userResponse)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PostMapping
     @PreAuthorize("@requiredPermission.checkPermission('CREATE_USER')")
     public ResponseEntity<?> createUser(@RequestBody UserRequest userRequest) {

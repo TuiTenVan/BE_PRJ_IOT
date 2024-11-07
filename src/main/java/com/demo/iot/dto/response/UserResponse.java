@@ -18,6 +18,5 @@ public class UserResponse {
     String studentCode;
     String phone;
     String className;
-    String location;
     Date createdDate;
 }

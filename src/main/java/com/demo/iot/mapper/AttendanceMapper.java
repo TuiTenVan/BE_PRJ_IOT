@@ -1,7 +1,5 @@
 package com.demo.iot.mapper;
 
-import com.demo.iot.dto.response.AttendanceResponse;
-import com.demo.iot.entity.Attendance;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

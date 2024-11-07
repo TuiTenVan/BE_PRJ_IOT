@@ -10,6 +10,7 @@ public interface IUserService {
     void deleteRfid(String rfidCode);
     void createUser(UserRequest userRequest);
     Page<UserResponse> findUser(String name, String studentCode, Pageable pageable);
+    UserResponse findUserById(Integer id);
     UserResponse updateUser(Integer id, UserRequest userRequest);
     void deleteUser(Integer id);
 }

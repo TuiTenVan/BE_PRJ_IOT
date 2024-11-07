@@ -7,6 +7,6 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 
 public interface IAttendanceService {
-    void attendance(String rfidCode);
+    void attendance(String rfidCode, String codeDevice);
     Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, String location, Pageable pageable);
 }

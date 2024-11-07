@@ -3,8 +3,12 @@ package com.demo.iot.service.impl;
 import com.demo.iot.common.Shift;
 import com.demo.iot.dto.response.AttendanceResponse;
 import com.demo.iot.entity.Attendance;
+import com.demo.iot.entity.Device;
+import com.demo.iot.entity.DeviceUser;
 import com.demo.iot.entity.User;
 import com.demo.iot.repository.IAttendanceRepository;
+import com.demo.iot.repository.IDeviceRepository;
+import com.demo.iot.repository.IDeviceUseRepository;
 import com.demo.iot.repository.IUserRepository;
 import com.demo.iot.service.IAttendanceService;
 import lombok.AccessLevel;
@@ -28,14 +32,30 @@ import java.util.stream.Collectors;
 public class AttendanceService implements IAttendanceService {
     IAttendanceRepository attendanceRepository;
     IUserRepository userRepository;
+    IDeviceRepository deviceRepository;
+    IDeviceUseRepository deviceUseRepository;
 
-    public void attendance(String rfidCode) {
+    public void attendance(String rfidCode, String codeDevice) {
         Optional<User> userOptional = userRepository.findByRfidCode(rfidCode);
+        Optional<Device> deviceOptional = deviceRepository.findByCodeDevice(codeDevice);
+
         if (userOptional.isPresent() && userOptional.get().getUsername() != null && userOptional.get().getStudentCode() != null) {
-            User user = userOptional.get();
             LocalDate today = LocalDate.now();
             LocalTime currentTime = LocalTime.now();
+            if(deviceUseRepository.findDeviceUserByUserAndDeviceAndDate(userOptional.get(), deviceOptional.get(), today).isPresent()){
+                throw new RuntimeException("Has been identified on the device");
+            }
+            DeviceUser deviceUser = new DeviceUser();
+            deviceUser.setUser(userOptional.get());
+            deviceUser.setDevice(deviceOptional.get());
+            deviceUser.setDate(today);
+            deviceUseRepository.save(deviceUser);
+
+            User user = userOptional.get();
+
+            String location = deviceOptional.get().getLocation();
             Shift shift;
+
             if (currentTime.isAfter(LocalTime.of(8, 0)) && currentTime.isBefore(LocalTime.of(11, 0))) {
                 shift = Shift.Morning;
             } else if (currentTime.isAfter(LocalTime.of(14, 0)) && currentTime.isBefore(LocalTime.of(17, 0))) {
@@ -43,13 +63,14 @@ public class AttendanceService implements IAttendanceService {
             } else{
                 shift = Shift.OverTime;
             }
-            Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndDateAndShift(user, today, shift);
+
+            Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndDateAndShiftAndLocation(user, today, shift, location);
             Attendance attendance;
             if (existingAttendance.isPresent()) {
                 attendance = existingAttendance.get();
                 attendance.setTimeOut(currentTime);
             } else {
-                attendance = getAttendance(user, today, currentTime, shift);
+                attendance = getAttendance(user, today, currentTime, shift, deviceOptional.get());
             }
             attendanceRepository.save(attendance);
         }
@@ -58,12 +79,13 @@ public class AttendanceService implements IAttendanceService {
         }
     }
 
-    private static Attendance getAttendance(User user, LocalDate today, LocalTime currentTime, Shift shift) {
+    private static Attendance getAttendance(User user, LocalDate today, LocalTime currentTime, Shift shift, Device device) {
         Attendance attendance = new Attendance();
         attendance.setUser(user);
         attendance.setDate(today);
         attendance.setTimeIn(currentTime);
         attendance.setShift(shift);
+        attendance.setLocation(device.getLocation());
         boolean onTime = false;
         if (shift == Shift.Morning) {
             onTime = !currentTime.isAfter(LocalTime.of(8, 0));
@@ -74,11 +96,10 @@ public class AttendanceService implements IAttendanceService {
         return attendance;
     }
 
-
     @Override
     public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, String location, Pageable pageable) {
         Page<Attendance> attendances;
-        if (startDate == null && endDate == null && shift == null && username == null) {
+        if (startDate == null && endDate == null && shift == null && username == null && location == null) {
             attendances = attendanceRepository.findAll(pageable);
         } else {
             if(shift != null){
@@ -96,6 +117,7 @@ public class AttendanceService implements IAttendanceService {
                         .attendanceTimeIn(LocalTime.parse(attendance.getTimeIn().format(DateTimeFormatter.ofPattern("HH:mm:ss"))))
                         .date(attendance.getDate().toString())
                         .shift(attendance.getShift())
+                        .location(attendance.getLocation())
                         .attendanceTimeOut(attendance.getTimeOut() != null ?
                                 LocalTime.parse(attendance.getTimeOut().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) : null)
                         .onTime(String.valueOf(attendance.isOnTime()))

@@ -61,6 +61,14 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public UserResponse findUserById(Integer id) {
+        Optional<User> user = userRepository.findById(id);
+        return user.map(userMapper::toUserResponse).orElseThrow(
+                () -> new RuntimeException("User not found")
+        );
+    }
+
+    @Override
     public UserResponse updateUser(Integer id, UserRequest userRequest) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("User not found")

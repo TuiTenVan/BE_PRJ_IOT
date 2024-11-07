@@ -18,5 +18,6 @@ public class AttendanceResponse {
     String onTime;
     Shift shift;
     String date;
+    String location;
     LocalTime attendanceTimeOut;
 }

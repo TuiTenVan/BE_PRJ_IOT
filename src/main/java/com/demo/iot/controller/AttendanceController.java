@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +28,8 @@ public class AttendanceController {
     IAttendanceService attendanceService;
 
     @PostMapping
-    public ResponseEntity<?> createAttendance(@RequestParam String rfidCode) {
-        attendanceService.attendance(rfidCode);
+    public ResponseEntity<?> createAttendance(@RequestParam String rfidCode, @RequestParam String codeDevice) {
+        attendanceService.attendance(rfidCode, codeDevice);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.CREATED.value())
                 .message(HttpStatus.CREATED.getReasonPhrase())
@@ -46,7 +47,7 @@ public class AttendanceController {
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(value = "shift", required = false) String shift,
             @RequestParam(value = "username", required = false) String username, @RequestParam(value = "location", required = false) String location) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
         Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(startDate, endDate, shift, username, location, pageable);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())

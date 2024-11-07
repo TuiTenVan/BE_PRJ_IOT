@@ -42,4 +42,7 @@ public class Attendance{
 
     @Column
     boolean onTime;
+
+    @Column
+    String location;
 }

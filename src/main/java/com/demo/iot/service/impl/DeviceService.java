@@ -9,12 +9,12 @@ import com.demo.iot.service.IDeviceService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,10 +41,9 @@ public class DeviceService implements IDeviceService {
     }
 
     @Override
-    public List<DeviceResponse> getAllDevices() {
-        return deviceRepository.findAll().stream()
-                .map(deviceMapper::toDeviceResponse)
-                .collect(Collectors.toList());
+    public Page<DeviceResponse> getAllDevices(Pageable pageable) {
+        Page<Device> devicePage = deviceRepository.findAll(pageable);
+        return devicePage.map(deviceMapper::toDeviceResponse);
     }
 
     @Override
@@ -52,7 +51,7 @@ public class DeviceService implements IDeviceService {
     public DeviceResponse updateDevice(Integer id, DeviceRequest deviceRequest) {
         Optional<Device> optionalDevice = deviceRepository.findById(id);
         if (optionalDevice.isEmpty()) {
-            throw new IllegalArgumentException("Device with id " + id + " not found");
+            throw new IllegalArgumentException("Device not found");
         }
         Device device = optionalDevice.get();
         device.setName(deviceRequest.getName());
@@ -66,9 +65,17 @@ public class DeviceService implements IDeviceService {
     @Transactional
     public void deleteDevice(Integer id) {
         if (!deviceRepository.existsById(id)) {
-            throw new IllegalArgumentException("Device with id " + id + " not found");
+            throw new IllegalArgumentException("Device not found");
         }
         deviceRepository.deleteById(id);
     }
 
+    @Override
+    public DeviceResponse getDeviceById(Integer id) {
+        Optional<Device> optionalDevice = deviceRepository.findById(id);
+        if (optionalDevice.isEmpty()) {
+            throw new IllegalArgumentException("Device not found");
+        }
+        return deviceMapper.toDeviceResponse(optionalDevice.get());
+    }
 }
