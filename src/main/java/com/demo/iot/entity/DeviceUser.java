@@ -2,11 +2,11 @@ package com.demo.iot.entity;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 @Entity
 @Getter
@@ -16,16 +16,12 @@ import java.util.List;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class Device extends BaseEntity {
-    @Column
-    String name;
+public class DeviceUser extends BaseEntity {
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    User user;
 
-    @Column
-    String location;
-
-    @Column
-    String codeDevice;
-
-    @OneToMany(mappedBy = "device", fetch = FetchType.LAZY)
-    List<DeviceUser> deviceUsers;
+    @ManyToOne
+    @JoinColumn(name = "device_id", nullable = false)
+    Device device;
 }

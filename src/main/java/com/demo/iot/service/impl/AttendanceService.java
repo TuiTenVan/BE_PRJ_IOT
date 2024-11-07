@@ -76,17 +76,17 @@ public class AttendanceService implements IAttendanceService {
 
 
     @Override
-    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, Pageable pageable) {
+    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, String location, Pageable pageable) {
         Page<Attendance> attendances;
         if (startDate == null && endDate == null && shift == null && username == null) {
             attendances = attendanceRepository.findAll(pageable);
         } else {
             if(shift != null){
                 Shift convertShift = Shift.valueOf(shift);
-                attendances = attendanceRepository.filterAttendance(startDate, endDate, convertShift, username, pageable);
+                attendances = attendanceRepository.filterAttendance(startDate, endDate, convertShift, username, location, pageable);
             }
             else{
-                attendances = attendanceRepository.filterAttendance(startDate, endDate, null, username, pageable);
+                attendances = attendanceRepository.filterAttendance(startDate, endDate, null, username, location,  pageable);
             }
         }
         List<AttendanceResponse> attendanceResponseList = attendances.getContent().stream()
@@ -101,7 +101,6 @@ public class AttendanceService implements IAttendanceService {
                         .onTime(String.valueOf(attendance.isOnTime()))
                         .build())
                 .collect(Collectors.toList());
-
         return new PageImpl<>(attendanceResponseList, pageable, attendances.getTotalElements());
     }
 

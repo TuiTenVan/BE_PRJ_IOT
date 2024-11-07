@@ -8,5 +8,5 @@ import java.time.LocalDate;
 
 public interface IAttendanceService {
     void attendance(String rfidCode);
-    Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, Pageable pageable);
+    Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, String location, Pageable pageable);
 }

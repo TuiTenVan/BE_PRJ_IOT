@@ -44,9 +44,10 @@ public class AttendanceController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(value = "shift", required = false) String shift, @RequestParam(value = "username", required = false) String username) {
+            @RequestParam(value = "shift", required = false) String shift,
+            @RequestParam(value = "username", required = false) String username, @RequestParam(value = "location", required = false) String location) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(startDate, endDate, shift, username, pageable);
+        Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(startDate, endDate, shift, username, location, pageable);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(HttpStatus.OK.getReasonPhrase())

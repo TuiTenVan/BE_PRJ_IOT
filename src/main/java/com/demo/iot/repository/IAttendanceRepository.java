@@ -19,14 +19,21 @@ import java.util.Optional;
 public interface IAttendanceRepository extends JpaRepository<Attendance, Integer> {
     Optional<Attendance> findByUserAndDateAndShift(User user, LocalDate date, Shift shift);
 
-    @Query("SELECT a FROM Attendance a WHERE (:startDate IS NULL OR a.date >= :startDate) " +
+    @Query("SELECT a FROM Attendance a " +
+            "JOIN a.user u " +
+            "JOIN DeviceUser du ON du.user = u " +
+            "JOIN du.device d " +
+            "WHERE (:startDate IS NULL OR a.date >= :startDate) " +
             "AND (:endDate IS NULL OR a.date <= :endDate) " +
             "AND (:shift IS NULL OR a.shift = :shift) " +
-            "AND (:username IS NULL OR a.user.username LIKE CONCAT('%', :username, '%'))")
+            "AND (:username IS NULL OR u.username LIKE CONCAT('%', :username, '%')) " +
+            "AND (:location IS NULL OR d.location = :location)")
     Page<Attendance> filterAttendance(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("shift") Shift shift,
             @Param("username") String username,
+            @Param("location") String location,
             Pageable pageable);
 }
+

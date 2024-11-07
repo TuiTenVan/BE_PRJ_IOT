@@ -10,14 +10,10 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
+public class DeviceResponse {
     Integer id;
-    String rfidCode;
-    String username;
-    String gender;
-    String studentCode;
-    String phone;
-    String className;
+    String name;
     String location;
+    String codeDevice;
     Date createdDate;
 }
