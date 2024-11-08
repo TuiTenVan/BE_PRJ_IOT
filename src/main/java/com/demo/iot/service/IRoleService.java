@@ -13,6 +13,7 @@ public interface IRoleService{
     RoleResponse createRole(RoleRequest roleRequest);
     RoleResponse updateRole(Integer id, RoleRequest roleRequest);
     RoleResponse getRoleId(Integer roleId);
+    void deleteRole(List<Integer> roleId);
     RoleResponse assignPermissionToRole(Integer roleId, List<Integer> permissionIds);
     RoleResponse unassignPermissionFromRole(Integer roleId, List<Integer> permissionIds);
 }

@@ -77,6 +77,18 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @DeleteMapping("/{ids}")
+    @PreAuthorize("@requiredPermission.checkPermission('DELETE_ROLES')")
+    public ResponseEntity<?> deleteRole(@PathVariable("ids") List<Integer> ids) {
+        roleService.deleteRole(ids);
+        ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message(HttpStatus.OK.getReasonPhrase())
+                .data("success")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @PatchMapping("/assignment/{permissionIds}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> assignPermissions(@RequestParam Integer roleId,

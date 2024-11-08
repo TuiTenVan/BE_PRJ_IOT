@@ -12,7 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface IRoleRepository extends JpaRepository<Role,Integer> {
-    Optional<Role> findRoleByName(String roleName);
+    @Query("SELECT r FROM Role r WHERE r.status = 1")
+    Page<Role> findAllWithStatus(Pageable pageable);
+    Optional<Role> findByName(String name);
 
     @Query("SELECT r FROM Role r " +
             "WHERE LOWER(r.name) " +

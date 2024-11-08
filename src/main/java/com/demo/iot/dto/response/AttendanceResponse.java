@@ -15,9 +15,10 @@ public class AttendanceResponse {
     String rfidCode;
     String fullName;
     LocalTime attendanceTimeIn;
-    String onTime;
+    boolean onTime;
+    boolean leftEarly;
     Shift shift;
     String date;
-    String location;
+    String nameDevice;
     LocalTime attendanceTimeOut;
 }

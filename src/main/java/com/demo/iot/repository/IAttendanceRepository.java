@@ -12,12 +12,14 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface IAttendanceRepository extends JpaRepository<Attendance, Integer> {
     Optional<Attendance> findByUserAndDateAndShiftAndLocation(User user, LocalDate date, Shift shift, String location);
+    List<Attendance> findByUserAndDate(User user, LocalDate date);
 
     @Query("SELECT a FROM Attendance a JOIN a.user u " +
             "WHERE (:startDate IS NULL OR a.date >= :startDate) AND (:endDate IS NULL OR a.date <= :endDate) " +

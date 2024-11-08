@@ -6,6 +6,7 @@ import com.demo.iot.entity.Attendance;
 import com.demo.iot.entity.Device;
 import com.demo.iot.entity.DeviceUser;
 import com.demo.iot.entity.User;
+import com.demo.iot.exception.NotFoundException;
 import com.demo.iot.repository.IAttendanceRepository;
 import com.demo.iot.repository.IDeviceRepository;
 import com.demo.iot.repository.IDeviceUseRepository;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -50,7 +52,6 @@ public class AttendanceService implements IAttendanceService {
             deviceUser.setDevice(deviceOptional.get());
             deviceUser.setDate(today);
             deviceUseRepository.save(deviceUser);
-
             User user = userOptional.get();
 
             String location = deviceOptional.get().getLocation();
@@ -87,27 +88,31 @@ public class AttendanceService implements IAttendanceService {
         attendance.setShift(shift);
         attendance.setLocation(device.getLocation());
         boolean onTime = false;
+        boolean leftEarly = false;
         if (shift == Shift.Morning) {
             onTime = !currentTime.isAfter(LocalTime.of(8, 0));
+            leftEarly = currentTime.isBefore(LocalTime.of(11, 0));
         } else if (shift == Shift.Afternoon) {
-            onTime = !currentTime.isAfter(LocalTime.of(17, 0));
+            onTime = !currentTime.isAfter(LocalTime.of(14, 0));
+            leftEarly = currentTime.isBefore(LocalTime.of(17, 0));
         }
         attendance.setOnTime(onTime);
+        attendance.setLeftEarly(leftEarly);
         return attendance;
     }
 
     @Override
-    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, String location, Pageable pageable) {
+    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, String nameDevice, Pageable pageable) {
         Page<Attendance> attendances;
-        if (startDate == null && endDate == null && shift == null && username == null && location == null) {
+        if (startDate == null && endDate == null && shift == null && username == null && nameDevice == null) {
             attendances = attendanceRepository.findAll(pageable);
         } else {
             if(shift != null){
                 Shift convertShift = Shift.valueOf(shift);
-                attendances = attendanceRepository.filterAttendance(startDate, endDate, convertShift, username, location, pageable);
+                attendances = attendanceRepository.filterAttendance(startDate, endDate, convertShift, username, nameDevice, pageable);
             }
             else{
-                attendances = attendanceRepository.filterAttendance(startDate, endDate, null, username, location,  pageable);
+                attendances = attendanceRepository.filterAttendance(startDate, endDate, null, username, nameDevice,  pageable);
             }
         }
         List<AttendanceResponse> attendanceResponseList = attendances.getContent().stream()
@@ -117,13 +122,43 @@ public class AttendanceService implements IAttendanceService {
                         .attendanceTimeIn(LocalTime.parse(attendance.getTimeIn().format(DateTimeFormatter.ofPattern("HH:mm:ss"))))
                         .date(attendance.getDate().toString())
                         .shift(attendance.getShift())
-                        .location(attendance.getLocation())
+                        .nameDevice(attendance.getLocation())
                         .attendanceTimeOut(attendance.getTimeOut() != null ?
                                 LocalTime.parse(attendance.getTimeOut().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) : null)
-                        .onTime(String.valueOf(attendance.isOnTime()))
+                        .onTime(attendance.isOnTime())
+                        .leftEarly(attendance.isLeftEarly())
                         .build())
                 .collect(Collectors.toList());
         return new PageImpl<>(attendanceResponseList, pageable, attendances.getTotalElements());
+    }
+
+    @Override
+    public List<AttendanceResponse> checkUser(String studentCode) {
+        Optional<User> userOptional = userRepository.findByStudentCode(studentCode);
+        if(userOptional.isEmpty()){
+            throw new NotFoundException("User not found");
+        }
+        User user = userOptional.get();
+        LocalDate today = LocalDate.now();
+        List<Attendance> attendances = attendanceRepository.findByUserAndDate(user, today);
+        if (attendances.isEmpty()){
+            throw new NotFoundException("Not yet checked");
+        }
+        List<AttendanceResponse> attendanceResponseList = new ArrayList<>();
+        for(Attendance attendance : attendances){
+            AttendanceResponse attendanceResponse = AttendanceResponse.builder()
+                    .fullName(attendance.getUser().getUsername())
+                    .onTime(attendance.isOnTime())
+                    .attendanceTimeIn(LocalTime.parse(attendance.getTimeIn().format(DateTimeFormatter.ofPattern("HH:mm:ss"))))
+                    .attendanceTimeOut(attendance.getTimeOut() != null ?
+                            LocalTime.parse(attendance.getTimeOut().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) : null)
+                    .date(String.valueOf(attendance.getDate()))
+                    .shift(attendance.getShift())
+                    .nameDevice(attendance.getLocation())
+                    .build();
+            attendanceResponseList.add(attendanceResponse);
+        }
+        return attendanceResponseList;
     }
 
 }

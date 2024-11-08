@@ -3,6 +3,7 @@ package com.demo.iot.security;
 import com.demo.iot.entity.Account;
 import com.demo.iot.entity.Permission;
 import com.demo.iot.repository.IPermissionRepository;
+import com.demo.iot.service.IAuthService;
 import com.demo.iot.service.impl.AccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +17,11 @@ import java.util.Set;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RequiredPermission {
-    AccountService accountService;
+    IAuthService authService;
     IPermissionRepository permissionRepository;
 
     public boolean checkPermission(String permissionCheck){
-        Optional<Account> account = accountService.getCurrentAccount();
+        Optional<Account> account = authService.getCurrentAccount();
         if(account.isPresent()){
             Set<Permission> permissions = permissionRepository.findPermissionsByRoleId(account.get().getRole().getId());
             for(Permission permission : permissions){

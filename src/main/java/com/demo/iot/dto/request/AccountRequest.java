@@ -1,4 +1,4 @@
-package com.demo.iot.dto.response;
+package com.demo.iot.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -10,8 +10,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AccountResponse {
-    Integer id;
+public class AccountRequest {
     String username;
     String email;
     String fullName;
@@ -19,7 +18,7 @@ public class AccountResponse {
     String gender;
     String address;
     String avatar;
-    Integer status;
     LocalDate dateOfBirth;
+    String password;
     String role;
 }

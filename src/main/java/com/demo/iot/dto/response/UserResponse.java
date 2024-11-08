@@ -17,6 +17,7 @@ public class UserResponse {
     String gender;
     String studentCode;
     String phone;
+    String email;
     String className;
     Date createdDate;
 }
