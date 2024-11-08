@@ -2,6 +2,7 @@ package com.demo.iot.service.impl;
 
 import com.demo.iot.entity.Account;
 import com.demo.iot.entity.RefreshToken;
+import com.demo.iot.exception.NotFoundException;
 import com.demo.iot.repository.IAccountRepository;
 import com.demo.iot.repository.IRefreshTokenRepository;
 import com.demo.iot.service.IRefreshTokenService;
@@ -31,7 +32,7 @@ public class RefreshTokenService implements IRefreshTokenService {
         String refreshToken = UUID.randomUUID().toString();
         Instant expiresAt = Instant.now().plusMillis(expirationRefreshToken * 1000L);
         Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new RuntimeException("Account not found")
+                () -> new NotFoundException("Account not found")
         );
         RefreshToken existingToken = refreshTokenRepository.findByAccountId(accountId);
         if (existingToken != null) {

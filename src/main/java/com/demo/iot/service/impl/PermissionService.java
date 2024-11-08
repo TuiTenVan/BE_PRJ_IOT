@@ -3,6 +3,8 @@ package com.demo.iot.service.impl;
 import com.demo.iot.dto.request.PermissionRequest;
 import com.demo.iot.dto.response.PermissionResponse;
 import com.demo.iot.entity.Permission;
+import com.demo.iot.exception.AlreadyExitException;
+import com.demo.iot.exception.NotFoundException;
 import com.demo.iot.mapper.PermissionMapper;
 import com.demo.iot.repository.IPermissionRepository;
 import com.demo.iot.service.IPermissionService;
@@ -34,7 +36,7 @@ public class PermissionService implements IPermissionService {
             permissionResponse = permissionMapper.toPermissionResponse(permissionEntity);
         }
         else{
-            throw new RuntimeException("Permission name already exist");
+            throw new AlreadyExitException("Permission name already exist");
         }
         return permissionResponse;
     }
@@ -59,7 +61,7 @@ public class PermissionService implements IPermissionService {
     @Override
     public void updatePermission(Integer permissionId, PermissionRequest permissionRequest) {
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(
-                () -> new RuntimeException("Permission not found with id: " + permissionId)
+                () -> new NotFoundException("Permission not found with id: " + permissionId)
         );
         permission.setName(permissionRequest.getName());
         permission.setDescription(permissionRequest.getDescription());

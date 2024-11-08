@@ -19,8 +19,9 @@ public class RfidController {
     IUserService userService;
 
     @PostMapping("")
-    public ResponseEntity<?> createRfid(@RequestParam String rfidCode){
-        userService.createRfid(rfidCode);
+    public ResponseEntity<?> createRfid(@RequestParam(value = "rfidCode") String rfidCode,
+                                        @RequestParam(value = "deviceCode") String deviceCode){
+        userService.createRfid(rfidCode, deviceCode);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.CREATED.value())
                 .message(HttpStatus.CREATED.getReasonPhrase())
@@ -30,8 +31,9 @@ public class RfidController {
     }
 
     @DeleteMapping("/{rfid-code}")
-    public ResponseEntity<?> deleteRfid(@PathVariable("rfid-code") String rfidCode){
-        userService.deleteRfid(rfidCode);
+    public ResponseEntity<?> deleteRfid(@PathVariable("rfid-code") String rfidCode,
+                                        @RequestParam(value = "deviceCode") String deviceCode){
+        userService.deleteRfid(rfidCode, deviceCode);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(HttpStatus.OK.getReasonPhrase())

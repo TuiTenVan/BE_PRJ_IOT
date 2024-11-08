@@ -44,8 +44,5 @@ public class Attendance{
     boolean onTime;
 
     @Column
-    boolean leftEarly;
-
-    @Column
     String location;
 }

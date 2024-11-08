@@ -27,7 +27,4 @@ public class DeviceUser extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "device_id", nullable = false)
     Device device;
-
-    @Column
-    LocalDate date;
 }

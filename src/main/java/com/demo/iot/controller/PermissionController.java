@@ -73,5 +73,4 @@ public class PermissionController {
         permissionService.deletePermissions(permissionIds);
         return ResponseEntity.ok().build();
     }
-
 }

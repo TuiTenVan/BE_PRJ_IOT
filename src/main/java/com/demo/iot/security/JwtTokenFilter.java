@@ -76,7 +76,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/auth/check-account", apiPrefix), "GET"),
                 Pair.of(String.format("%s/check", apiPrefix), "GET"),
 
-
                 // Swagger
                 Pair.of("/v3/api-docs", "GET"),
                 Pair.of("/v3/api-docs/.*", "GET"),

@@ -44,14 +44,6 @@ public class AttendanceService implements IAttendanceService {
         if (userOptional.isPresent() && userOptional.get().getUsername() != null && userOptional.get().getStudentCode() != null) {
             LocalDate today = LocalDate.now();
             LocalTime currentTime = LocalTime.now();
-            if(deviceUseRepository.findDeviceUserByUserAndDeviceAndDate(userOptional.get(), deviceOptional.get(), today).isPresent()){
-                throw new RuntimeException("Has been identified on the device");
-            }
-            DeviceUser deviceUser = new DeviceUser();
-            deviceUser.setUser(userOptional.get());
-            deviceUser.setDevice(deviceOptional.get());
-            deviceUser.setDate(today);
-            deviceUseRepository.save(deviceUser);
             User user = userOptional.get();
 
             String location = deviceOptional.get().getLocation();
@@ -88,16 +80,12 @@ public class AttendanceService implements IAttendanceService {
         attendance.setShift(shift);
         attendance.setLocation(device.getLocation());
         boolean onTime = false;
-        boolean leftEarly = false;
         if (shift == Shift.Morning) {
             onTime = !currentTime.isAfter(LocalTime.of(8, 0));
-            leftEarly = currentTime.isBefore(LocalTime.of(11, 0));
         } else if (shift == Shift.Afternoon) {
             onTime = !currentTime.isAfter(LocalTime.of(14, 0));
-            leftEarly = currentTime.isBefore(LocalTime.of(17, 0));
         }
         attendance.setOnTime(onTime);
-        attendance.setLeftEarly(leftEarly);
         return attendance;
     }
 
@@ -126,7 +114,6 @@ public class AttendanceService implements IAttendanceService {
                         .attendanceTimeOut(attendance.getTimeOut() != null ?
                                 LocalTime.parse(attendance.getTimeOut().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) : null)
                         .onTime(attendance.isOnTime())
-                        .leftEarly(attendance.isLeftEarly())
                         .build())
                 .collect(Collectors.toList());
         return new PageImpl<>(attendanceResponseList, pageable, attendances.getTotalElements());

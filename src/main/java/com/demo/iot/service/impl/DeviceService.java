@@ -3,6 +3,8 @@ package com.demo.iot.service.impl;
 import com.demo.iot.dto.request.DeviceRequest;
 import com.demo.iot.dto.response.DeviceResponse;
 import com.demo.iot.entity.Device;
+import com.demo.iot.exception.AlreadyExitException;
+import com.demo.iot.exception.NotFoundException;
 import com.demo.iot.mapper.DeviceMapper;
 import com.demo.iot.repository.IDeviceRepository;
 import com.demo.iot.service.IDeviceService;
@@ -27,13 +29,13 @@ public class DeviceService implements IDeviceService {
     @Transactional
     public DeviceResponse createDevice(DeviceRequest deviceRequest) {
         if (deviceRepository.findByName(deviceRequest.getName()).isPresent()) {
-            throw new IllegalArgumentException("Device with name " + deviceRequest.getName() + " already exists");
+            throw new AlreadyExitException("Device with name " + deviceRequest.getName() + " already exists");
         }
         if (deviceRepository.findByLocation(deviceRequest.getLocation()).isPresent()) {
-            throw new IllegalArgumentException("Device with location " + deviceRequest.getLocation() + " already exists");
+            throw new AlreadyExitException("Device with location " + deviceRequest.getLocation() + " already exists");
         }
         if (deviceRepository.findByCodeDevice(deviceRequest.getCodeDevice()).isPresent()) {
-            throw new IllegalArgumentException("Device with code " + deviceRequest.getCodeDevice() + " already exists");
+            throw new AlreadyExitException("Device with code " + deviceRequest.getCodeDevice() + " already exists");
         }
         Device device = deviceMapper.toDevice(deviceRequest);
         device = deviceRepository.save(device);
@@ -51,7 +53,7 @@ public class DeviceService implements IDeviceService {
     public DeviceResponse updateDevice(Integer id, DeviceRequest deviceRequest) {
         Optional<Device> optionalDevice = deviceRepository.findById(id);
         if (optionalDevice.isEmpty()) {
-            throw new IllegalArgumentException("Device not found");
+            throw new NotFoundException("Device not found");
         }
         Device device = optionalDevice.get();
         device.setName(deviceRequest.getName());
@@ -65,7 +67,7 @@ public class DeviceService implements IDeviceService {
     @Transactional
     public void deleteDevice(Integer id) {
         if (!deviceRepository.existsById(id)) {
-            throw new IllegalArgumentException("Device not found");
+            throw new NotFoundException("Device not found");
         }
         deviceRepository.deleteById(id);
     }
@@ -74,7 +76,7 @@ public class DeviceService implements IDeviceService {
     public DeviceResponse getDeviceById(Integer id) {
         Optional<Device> optionalDevice = deviceRepository.findById(id);
         if (optionalDevice.isEmpty()) {
-            throw new IllegalArgumentException("Device not found");
+            throw new NotFoundException("Device not found");
         }
         return deviceMapper.toDeviceResponse(optionalDevice.get());
     }

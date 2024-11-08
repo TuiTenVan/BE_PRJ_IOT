@@ -2,8 +2,14 @@ package com.demo.iot.service.impl;
 
 import com.demo.iot.dto.request.UserRequest;
 import com.demo.iot.dto.response.UserResponse;
+import com.demo.iot.entity.Device;
+import com.demo.iot.entity.DeviceUser;
 import com.demo.iot.entity.User;
+import com.demo.iot.exception.AlreadyExitException;
+import com.demo.iot.exception.NotFoundException;
 import com.demo.iot.mapper.UserMapper;
+import com.demo.iot.repository.IDeviceRepository;
+import com.demo.iot.repository.IDeviceUseRepository;
 import com.demo.iot.repository.IUserRepository;
 import com.demo.iot.service.IUserService;
 import jakarta.transaction.Transactional;
@@ -14,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,26 +28,61 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService implements IUserService {
     IUserRepository userRepository;
+    IDeviceUseRepository deviceUseRepository;
+    IDeviceRepository deviceRepository;
     UserMapper userMapper;
 
     @Override
-    public void createRfid(String rfidCode) {
+    public void createRfid(String rfidCode, String deviceCode) {
         Optional<User> user = userRepository.findByRfidCode(rfidCode);
-        if (user.isEmpty()) {
+        Optional<Device> device = deviceRepository.findByCodeDevice(deviceCode);
+        if(device.isEmpty()){
+            throw new NotFoundException("Device not found");
+        }
+        if(user.isPresent()){
+            Optional<DeviceUser> deviceUser = deviceUseRepository.findByUserAndDevice(user.get(), device.get());
+            if(deviceUser.isPresent()){
+                throw new AlreadyExitException("Device user already exists");
+            }
+            DeviceUser deviceUserEntity = DeviceUser.builder()
+                    .device(device.get())
+                    .user(user.get())
+                    .build();
+            deviceUseRepository.save(deviceUserEntity);
+        }
+        else{
             User userEntity = User.builder()
                     .rfidCode(rfidCode)
                     .build();
             userRepository.save(userEntity);
-        }else{
-            throw new RuntimeException("Rfid code already exists");
+            DeviceUser deviceUserEntity = DeviceUser.builder()
+                    .device(device.get())
+                    .user(userEntity)
+                    .build();
+            deviceUseRepository.save(deviceUserEntity);
         }
     }
 
     @Override
     @Transactional
-    public void deleteRfid(String rfidCode) {
+    public void deleteRfid(String rfidCode, String deviceCode) {
         Optional<User> user = userRepository.findByRfidCode(rfidCode);
-        user.ifPresent(userRepository::delete);
+        Optional<Device> device = deviceRepository.findByCodeDevice(deviceCode);
+        if(user.isEmpty()){
+            throw new NotFoundException("User not found");
+        }
+        if(device.isEmpty()){
+            throw new NotFoundException("Device not found");
+        }
+        Optional<DeviceUser> deviceUser = deviceUseRepository.findByUserAndDevice(user.get(), device.get());
+        if(deviceUser.isEmpty()){
+            throw new NotFoundException("Device user not found");
+        }
+        deviceUseRepository.delete(deviceUser.get());
+        List<DeviceUser> deviceUsers = deviceUseRepository.findByUser(user.get());
+        if(deviceUsers.isEmpty()){
+            userRepository.delete(user.get());
+        }
     }
 
     @Override
@@ -64,14 +106,14 @@ public class UserService implements IUserService {
     public UserResponse findUserById(Integer id) {
         Optional<User> user = userRepository.findById(id);
         return user.map(userMapper::toUserResponse).orElseThrow(
-                () -> new RuntimeException("User not found")
+                () -> new NotFoundException("User not found")
         );
     }
 
     @Override
     public UserResponse updateUser(Integer id, UserRequest userRequest) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("User not found")
+                () -> new NotFoundException("User not found")
         );
         user.setUsername(userRequest.getUsername());
         user.setEmail(userRequest.getEmail());
