@@ -4,12 +4,10 @@ import com.demo.iot.common.Shift;
 import com.demo.iot.dto.response.AttendanceResponse;
 import com.demo.iot.entity.Attendance;
 import com.demo.iot.entity.Device;
-import com.demo.iot.entity.DeviceUser;
 import com.demo.iot.entity.User;
 import com.demo.iot.exception.NotFoundException;
 import com.demo.iot.repository.IAttendanceRepository;
 import com.demo.iot.repository.IDeviceRepository;
-import com.demo.iot.repository.IDeviceUseRepository;
 import com.demo.iot.repository.IUserRepository;
 import com.demo.iot.service.IAttendanceService;
 import lombok.AccessLevel;
@@ -35,7 +33,6 @@ public class AttendanceService implements IAttendanceService {
     IAttendanceRepository attendanceRepository;
     IUserRepository userRepository;
     IDeviceRepository deviceRepository;
-    IDeviceUseRepository deviceUseRepository;
 
     public void attendance(String rfidCode, String codeDevice) {
         Optional<User> userOptional = userRepository.findByRfidCode(rfidCode);
@@ -90,17 +87,17 @@ public class AttendanceService implements IAttendanceService {
     }
 
     @Override
-    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String username, String nameDevice, Pageable pageable) {
+    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String studentCode, String nameDevice, Pageable pageable) {
         Page<Attendance> attendances;
-        if (startDate == null && endDate == null && shift == null && username == null && nameDevice == null) {
+        if (startDate == null && endDate == null && shift == null && studentCode == null && nameDevice == null) {
             attendances = attendanceRepository.findAll(pageable);
         } else {
             if(shift != null){
                 Shift convertShift = Shift.valueOf(shift);
-                attendances = attendanceRepository.filterAttendance(startDate, endDate, convertShift, username, nameDevice, pageable);
+                attendances = attendanceRepository.filterAttendance(startDate, endDate, convertShift, studentCode, nameDevice, pageable);
             }
             else{
-                attendances = attendanceRepository.filterAttendance(startDate, endDate, null, username, nameDevice,  pageable);
+                attendances = attendanceRepository.filterAttendance(startDate, endDate, null, studentCode, nameDevice,  pageable);
             }
         }
         List<AttendanceResponse> attendanceResponseList = attendances.getContent().stream()
@@ -111,6 +108,7 @@ public class AttendanceService implements IAttendanceService {
                         .date(attendance.getDate().toString())
                         .shift(attendance.getShift())
                         .nameDevice(attendance.getLocation())
+                        .studentCode(attendance.getUser().getStudentCode())
                         .attendanceTimeOut(attendance.getTimeOut() != null ?
                                 LocalTime.parse(attendance.getTimeOut().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) : null)
                         .onTime(attendance.isOnTime())

@@ -16,6 +16,7 @@ public class AttendanceResponse {
     String fullName;
     LocalTime attendanceTimeIn;
     boolean onTime;
+    String studentCode;
     Shift shift;
     String date;
     String nameDevice;

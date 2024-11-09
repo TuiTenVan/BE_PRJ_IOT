@@ -24,13 +24,13 @@ public interface IAttendanceRepository extends JpaRepository<Attendance, Integer
     @Query("SELECT a FROM Attendance a JOIN a.user u " +
             "WHERE (:startDate IS NULL OR a.date >= :startDate) AND (:endDate IS NULL OR a.date <= :endDate) " +
             "AND (:shift IS NULL OR a.shift = :shift) " +
-            "AND (:username IS NULL OR u.username LIKE CONCAT('%', :username, '%')) " +
+            "AND (:studentCode IS NULL OR u.studentCode LIKE CONCAT('%', :studentCode, '%')) " +
             "AND (:location IS NULL OR a.location LIKE CONCAT('%', :location, '%')) ")
     Page<Attendance> filterAttendance(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("shift") Shift shift,
-            @Param("username") String username,
+            @Param("studentCode") String studentCode,
             @Param("location") String location,
             Pageable pageable);
 }
