@@ -115,6 +115,18 @@ public class UserService implements IUserService {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("User not found")
         );
+        if (userRepository.existsByUsernameAndIdNot(userRequest.getUsername(), id)) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        if (userRepository.existsByEmailAndIdNot(userRequest.getEmail(), id)) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        if (userRepository.existsByPhoneAndIdNot(userRequest.getPhone(), id)) {
+            throw new IllegalArgumentException("Phone already exists");
+        }
+        if (userRepository.existsByStudentCodeAndIdNot(userRequest.getStudentCode(), id)) {
+            throw new IllegalArgumentException("Student code already exists");
+        }
         user.setUsername(userRequest.getUsername());
         user.setEmail(userRequest.getEmail());
         user.setPhone(userRequest.getPhone());

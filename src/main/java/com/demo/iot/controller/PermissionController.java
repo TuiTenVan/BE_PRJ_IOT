@@ -42,6 +42,18 @@ public class PermissionController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/{permissionId}")
+    @PreAuthorize("@requiredPermission.checkPermission('GET_PERMISSION')")
+    public ResponseEntity<?> getPermissionById(@PathVariable("permissionId") Integer permissionId) {
+        PermissionResponse permissionResponse = permissionService.getPermissionById(permissionId);
+        ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message(HttpStatus.OK.getReasonPhrase())
+                .data(permissionResponse)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PostMapping("")
     @PreAuthorize("@requiredPermission.checkPermission('CREATE_PERMISSION')")
     public ResponseEntity<?> createPermission(@RequestBody PermissionRequest permissionRequest) {

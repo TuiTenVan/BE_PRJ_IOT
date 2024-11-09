@@ -67,4 +67,12 @@ public class PermissionService implements IPermissionService {
         permission.setDescription(permissionRequest.getDescription());
         permissionRepository.save(permission);
     }
+
+    @Override
+    public PermissionResponse getPermissionById(Integer permissionId) {
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(
+                () -> new NotFoundException("Permission not found with id: " + permissionId)
+        );
+        return permissionMapper.toPermissionResponse(permission);
+    }
 }

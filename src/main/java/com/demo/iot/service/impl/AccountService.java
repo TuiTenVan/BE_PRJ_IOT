@@ -71,6 +71,21 @@ public class AccountService implements IAccountService {
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Account not found")
         );
+        accountRepository.findByUsername(accountRequest.getUsername()).ifPresent(existingAccount -> {
+            if (!existingAccount.getId().equals(id)) {
+                throw new AlreadyExitException("Username already exists");
+            }
+        });
+        accountRepository.findByEmail(accountRequest.getEmail()).ifPresent(existingAccount -> {
+            if (!existingAccount.getId().equals(id)) {
+                throw new AlreadyExitException("Email already exists");
+            }
+        });
+        accountRepository.findByPhone(accountRequest.getPhone()).ifPresent(existingAccount -> {
+            if (!existingAccount.getId().equals(id)) {
+                throw new AlreadyExitException("Phone already exists");
+            }
+        });
         account.setUsername(accountRequest.getUsername());
         account.setFullName(accountRequest.getFullName());
         account.setEmail(accountRequest.getEmail());
@@ -78,12 +93,12 @@ public class AccountService implements IAccountService {
         account.setAddress(accountRequest.getAddress());
         account.setGender(accountRequest.getGender());
         Optional<Role> role = roleRepository.findByName(accountRequest.getRole());
-        if(role.isEmpty()){
+        if (role.isEmpty()) {
             throw new NotFoundException("Role not found");
         }
-        if(accountRequest.getPassword() != null && !accountRequest.getPassword().isEmpty()){
-            String encodePassword = passwordEncoder.encode(accountRequest.getPassword());
-            account.setPassword(encodePassword);
+        if (accountRequest.getPassword() != null && !accountRequest.getPassword().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(accountRequest.getPassword());
+            account.setPassword(encodedPassword);
         }
         account.setRole(role.get());
         account.setAvatar(accountRequest.getAvatar());
@@ -91,6 +106,7 @@ public class AccountService implements IAccountService {
         accountRepository.save(account);
         return accountMapper.toAccountResponse(account);
     }
+
 
     @Override
     public AccountResponse getAccount(Integer id) {

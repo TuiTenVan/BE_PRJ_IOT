@@ -18,4 +18,10 @@ public interface IUserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findByRfidCode(String username);
     Optional<User> findByStudentCode(String studentCode);
+
+    boolean existsByUsernameAndIdNot(String username, Integer id);
+    boolean existsByEmailAndIdNot(String email, Integer id);
+    boolean existsByPhoneAndIdNot(String phone, Integer id);
+    boolean existsByStudentCodeAndIdNot(String studentCode, Integer id);
+
 }

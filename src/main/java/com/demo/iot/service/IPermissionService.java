@@ -12,4 +12,5 @@ public interface IPermissionService {
     Page<PermissionResponse> getAllPermissions(String search, Pageable pageable);
     void deletePermissions(List<Integer> permissionIds);
     void updatePermission(Integer permissionId, PermissionRequest permissionRequest);
+    PermissionResponse getPermissionById(Integer permissionId);
 }
