@@ -78,9 +78,10 @@ public class AccountService implements IAccountService {
         account.setAddress(accountRequest.getAddress());
         account.setGender(accountRequest.getGender());
         Optional<Role> role = roleRepository.findByName(accountRequest.getRole());
-        role.ifPresent(account::setRole);
-        String password = passwordEncoder.encode(accountRequest.getPassword());
-        account.setPassword(password);
+        if(role.isEmpty()){
+            throw new NotFoundException("Role not found");
+        }
+        account.setRole(role.get());
         account.setAvatar(accountRequest.getAvatar());
         account.setDateOfBirth(accountRequest.getDateOfBirth());
         accountRepository.save(account);

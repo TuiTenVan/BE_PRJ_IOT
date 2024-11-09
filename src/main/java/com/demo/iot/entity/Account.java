@@ -25,7 +25,7 @@ import java.util.Set;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 
 public class Account extends BaseEntity implements UserDetails {
-    @Column(nullable = false, length = 50, unique = true)
+    @Column(nullable = false, length = 50)
     String username;
 
     @Column(nullable = false, length = 255)
@@ -34,7 +34,7 @@ public class Account extends BaseEntity implements UserDetails {
     @Column(length = 50)
     String fullName;
 
-    @Column(length = 50, unique = true)
+    @Column(length = 50)
     String email;
 
     @Column(length = 50)
