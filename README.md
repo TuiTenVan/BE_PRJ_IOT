@@ -26,46 +26,6 @@ Hệ thống này được xây dựng để quản lý việc điểm danh củ
 - **React**: Node.js và npm
 - **MySQL**: 8.0.33
 
-## Hướng dẫn Cài đặt
-
-### 1. Cài đặt Backend (Spring Boot)
-
-- Clone repository và chuyển vào thư mục backend:
-  ```bash
-  git clone <repository-url>
-  cd attendance-backend
-  ```
-
-- Cấu hình `application.yaml` để kết nối với MySQL:
-  ```yaml
-    url: jdbc:mysql://localhost:3306/iot
-    username: 
-    password: 
-  ```
-
-- Xây dựng và chạy ứng dụng Spring Boot:
-  ```bash
-  ./mvnw spring-boot:run
-  ```
-
-### 2. Cài đặt Frontend (React)
-
-- Chuyển vào thư mục frontend và cài đặt các package:
-  ```bash
-  cd attendance-frontend
-  npm install
-  ```
-
-- Cấu hình tệp `.env` để trỏ tới backend API:
-  ```env
-  REACT_APP_API_URL=http://<backend-ec2-instance-url>/api
-  ```
-
-- Chạy ứng dụng React:
-  ```bash
-  npm start
-  ```
-
 ## Sử dụng
 
 1. **Người dùng** quét thẻ RFID để ghi nhận điểm danh, dữ liệu sẽ được ESP32 gửi tới backend.
