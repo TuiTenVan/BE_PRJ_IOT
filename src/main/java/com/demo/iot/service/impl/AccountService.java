@@ -81,6 +81,10 @@ public class AccountService implements IAccountService {
         if(role.isEmpty()){
             throw new NotFoundException("Role not found");
         }
+        if(accountRequest.getPassword() != null && !accountRequest.getPassword().isEmpty()){
+            String encodePassword = passwordEncoder.encode(accountRequest.getPassword());
+            account.setPassword(encodePassword);
+        }
         account.setRole(role.get());
         account.setAvatar(accountRequest.getAvatar());
         account.setDateOfBirth(accountRequest.getDateOfBirth());
