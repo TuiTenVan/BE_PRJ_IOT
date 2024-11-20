@@ -11,4 +11,5 @@ public interface IDeviceService {
     DeviceResponse updateDevice(Integer id, DeviceRequest device);
     void deleteDevice(Integer id);
     DeviceResponse getDeviceById(Integer id);
+    void heartbeat(String codeDevice);
 }

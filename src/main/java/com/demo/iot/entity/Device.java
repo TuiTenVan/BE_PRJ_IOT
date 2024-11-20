@@ -27,6 +27,9 @@ public class Device extends BaseEntity {
     @Column
     String codeDevice;
 
+    @Column
+    String status;
+
     @OneToMany(mappedBy = "device", fetch = FetchType.LAZY)
     List<DeviceUser> deviceUsers;
 }

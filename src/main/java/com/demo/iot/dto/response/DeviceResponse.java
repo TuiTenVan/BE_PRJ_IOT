@@ -15,5 +15,6 @@ public class DeviceResponse {
     String name;
     String location;
     String codeDevice;
+    String status;
     Date createdDate;
 }

@@ -16,6 +16,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -43,10 +48,30 @@ public class DeviceService implements IDeviceService {
     }
 
     @Override
+    @Transactional
     public Page<DeviceResponse> getAllDevices(Pageable pageable) {
         Page<Device> devicePage = deviceRepository.findAll(pageable);
+        List<Device> devicesToUpdate = new ArrayList<>();
+        devicePage.forEach(device -> {
+            boolean isOnline = checkOnline(device.getModifiedDate());
+            String newStatus = isOnline ? "online" : "offline";
+            if (!newStatus.equals(device.getStatus())) {
+                device.setStatus(newStatus);
+                devicesToUpdate.add(device);
+            }
+        });
+        if (!devicesToUpdate.isEmpty()) {
+            deviceRepository.saveAll(devicesToUpdate);
+        }
         return devicePage.map(deviceMapper::toDeviceResponse);
     }
+
+    private boolean checkOnline(LocalDateTime modifiedDate) {
+        ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.systemDefault());
+        ZonedDateTime deviceModifiedTime = modifiedDate.atZone(ZoneId.systemDefault());
+        return deviceModifiedTime.isAfter(now.minusSeconds(30));
+    }
+
 
     @Override
     @Transactional
@@ -79,5 +104,17 @@ public class DeviceService implements IDeviceService {
             throw new NotFoundException("Device not found");
         }
         return deviceMapper.toDeviceResponse(optionalDevice.get());
+    }
+
+    @Override
+    public void heartbeat(String codeDevice) {
+        Optional<Device> optionalDevice = deviceRepository.findByCodeDevice(codeDevice);
+        if (optionalDevice.isEmpty()) {
+            throw new NotFoundException("Device not found");
+        }
+        Device device = optionalDevice.get();
+        device.setStatus("online");
+        device.setModifiedDate(LocalDateTime.now());
+        deviceRepository.save(device);
     }
 }

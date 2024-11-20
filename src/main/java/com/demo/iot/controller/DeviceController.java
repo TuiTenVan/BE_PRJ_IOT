@@ -26,6 +26,17 @@ public class DeviceController {
 
     IDeviceService deviceService;
 
+    @GetMapping("/heartbeat")
+    public ResponseEntity<?> checkStatus(@RequestParam String codeDevice) {
+        deviceService.heartbeat(codeDevice);
+        ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.CREATED.value())
+                .message(HttpStatus.CREATED.getReasonPhrase())
+                .data("successfully")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @PostMapping
     @PreAuthorize("@requiredPermission.checkPermission('CREATE_DEVICE')")
     public ResponseEntity<?> createDevice(@RequestBody DeviceRequest deviceRequest) {
@@ -46,8 +57,8 @@ public class DeviceController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
         Page<DeviceResponse> devicePage = deviceService.getAllDevices(pageable);
         ApiResponse<?> response = ApiResponse.builder()
-                .status(HttpStatus.CREATED.value())
-                .message(HttpStatus.CREATED.getReasonPhrase())
+                .status(HttpStatus.OK.value())
+                .message(HttpStatus.OK.getReasonPhrase())
                 .data(devicePage)
                 .build();
         return ResponseEntity.ok(response);
