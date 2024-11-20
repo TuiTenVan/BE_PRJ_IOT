@@ -55,7 +55,7 @@ public class DeviceService implements IDeviceService {
         devicePage.forEach(device -> {
             boolean isOnline = checkOnline(device.getModifiedDate());
             String newStatus = isOnline ? "online" : "offline";
-            if (!newStatus.equals(device.getStatus())) {
+            if ((!newStatus.equals(device.getStatus())) && !isOnline) {
                 device.setStatus(newStatus);
                 devicesToUpdate.add(device);
             }
