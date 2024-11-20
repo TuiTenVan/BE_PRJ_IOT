@@ -46,11 +46,11 @@ public class AttendanceService implements IAttendanceService {
             String location = deviceOptional.get().getLocation();
             Shift shift;
 
-            if (currentTime.isAfter(LocalTime.of(8, 0)) && currentTime.isBefore(LocalTime.of(11, 0))) {
+            if (currentTime.isAfter(LocalTime.of(6, 0)) && currentTime.isBefore(LocalTime.of(12, 0))) { // 8 den 12
                 shift = Shift.Morning;
-            } else if (currentTime.isAfter(LocalTime.of(14, 0)) && currentTime.isBefore(LocalTime.of(17, 0))) {
+            } else if (currentTime.isAfter(LocalTime.of(12, 0)) && currentTime.isBefore(LocalTime.of(18, 0))) { // 14 den 18
                 shift = Shift.Afternoon;
-            } else{
+            } else { // 19 den 6
                 shift = Shift.OverTime;
             }
 
@@ -81,6 +81,8 @@ public class AttendanceService implements IAttendanceService {
             onTime = !currentTime.isAfter(LocalTime.of(8, 0));
         } else if (shift == Shift.Afternoon) {
             onTime = !currentTime.isAfter(LocalTime.of(14, 0));
+        } else {
+            onTime = (currentTime.isBefore(LocalTime.of(19, 0)) && currentTime.isAfter(LocalTime.of(18, 0)));
         }
         attendance.setOnTime(onTime);
         return attendance;
