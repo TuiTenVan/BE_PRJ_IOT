@@ -30,6 +30,15 @@ public class Device extends BaseEntity {
     @Column
     String status;
 
+    @Column
+    String longitude;
+
+    @Column
+    String latitude;
+
+    @Column
+    String googleMapLink;
+
     @OneToMany(mappedBy = "device", fetch = FetchType.LAZY)
     List<DeviceUser> deviceUsers;
 }

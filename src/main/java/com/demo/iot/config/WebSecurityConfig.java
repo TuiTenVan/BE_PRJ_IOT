@@ -49,6 +49,7 @@ public class WebSecurityConfig {
                         .requestMatchers(GET, String.format("%s/shifts", apiPrefix)).permitAll()
                         .requestMatchers(GET, String.format("%s/check", apiPrefix)).permitAll()
                         .requestMatchers(GET, String.format("%s/device/heartbeat", apiPrefix)).permitAll()
+                        .requestMatchers(POST, String.format("%s/gps/location", apiPrefix)).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)

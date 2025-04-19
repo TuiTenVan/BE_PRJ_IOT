@@ -33,6 +33,7 @@ public class CreatedAccountConfig {
                         .username("hanhnv")
                         .password(passwordEncoder.encode("123456"))
                         .role(role)
+                        .status(1)
                         .build();
                 accountRepository.save(account);
                 log.info("Created account successfully: {}", account.getUsername());
