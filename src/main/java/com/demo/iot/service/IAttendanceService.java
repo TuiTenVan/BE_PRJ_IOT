@@ -10,7 +10,12 @@ import java.util.List;
 
 public interface IAttendanceService {
     void attendance(String rfidCode, String codeDevice);
-    Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String studentCode, String location, Pageable pageable);
+    Page<AttendanceResponse> filterAttendance(LocalDate startDate,
+                                              LocalDate endDate,
+                                              String studentCode,
+                                              String nameDevice,
+                                              Integer onTime,
+                                              Pageable pageable);
     List<AttendanceResponse> checkUser(String studentCode);
     Page<AttendanceResponse> statisticByUser(String studentCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
     Page<UserAttendanceSummaryResponse> summarizeUserAttendance(LocalDate startDate, LocalDate endDate, Pageable pageable);

@@ -48,16 +48,20 @@ public class AttendanceController {
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(value = "studentCode", required = false) String studentCode,
-            @RequestParam(value = "nameDevice", required = false) String nameDevice) {
-
+            @RequestParam(value = "nameDevice", required = false) String nameDevice,
+            @RequestParam(value = "onTime", required = false) Integer onTime
+    ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
-        Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(startDate, endDate, null, studentCode, nameDevice, pageable);
+
+        Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(
+                startDate, endDate, studentCode, nameDevice, onTime, pageable);
 
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Filtered attendance fetched")
                 .data(filteredAttendance)
                 .build();
+
         return ResponseEntity.ok(response);
     }
 

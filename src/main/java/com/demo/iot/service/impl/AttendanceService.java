@@ -74,19 +74,39 @@ public class AttendanceService implements IAttendanceService {
     }
 
     @Override
-    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String unusedShift, String studentCode, String nameDevice, Pageable pageable) {
-        Page<Attendance> attendances = attendanceRepository.filterAttendance(startDate, endDate, studentCode, nameDevice, pageable);
+    public Page<AttendanceResponse> filterAttendance(
+            LocalDate startDate,
+            LocalDate endDate,
+            String studentCode,
+            String nameDevice,
+            Integer onTime,
+            Pageable pageable) {
+
+        // Mốc giờ đúng quy định
+        LocalTime checkInTime = LocalTime.of(8, 30);
+        LocalTime checkOutTime = LocalTime.of(17, 30);
+
+        // Gọi xuống repository (đã sửa để nhận thêm 2 tham số LocalTime)
+        Page<Attendance> attendances = attendanceRepository.filterAttendance(
+                startDate, endDate, studentCode, nameDevice, onTime, checkInTime, checkOutTime, pageable);
 
         List<AttendanceResponse> attendanceResponses = attendances.getContent().stream()
-                .map(attendance -> AttendanceResponse.builder()
-                        .rfidCode(attendance.getUser().getRfidCode())
-                        .fullName(attendance.getUser().getUsername())
-                        .studentCode(attendance.getUser().getStudentCode())
-                        .attendanceTimeIn(attendance.getFirstCheckIn())
-                        .attendanceTimeOut(attendance.getLastCheckOut())
-                        .date(attendance.getDate().toString())
-                        .nameDevice(attendance.getLocation())
-                        .build())
+                .map(attendance -> {
+                    LocalTime timeIn = attendance.getFirstCheckIn();
+                    LocalTime timeOut = attendance.getLastCheckOut();
+                    boolean isOnTime = !timeIn.isAfter(checkInTime) && !timeOut.isBefore(checkOutTime);
+
+                    return AttendanceResponse.builder()
+                            .rfidCode(attendance.getUser().getRfidCode())
+                            .fullName(attendance.getUser().getUsername())
+                            .studentCode(attendance.getUser().getStudentCode())
+                            .attendanceTimeIn(timeIn)
+                            .attendanceTimeOut(timeOut)
+                            .date(attendance.getDate().toString())
+                            .nameDevice(attendance.getLocation())
+                            .onTime(isOnTime)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return new PageImpl<>(attendanceResponses, pageable, attendances.getTotalElements());
