@@ -1,6 +1,5 @@
 package com.demo.iot.entity;
 
-import com.demo.iot.common.Shift;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.persistence.*;
@@ -8,7 +7,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -19,7 +17,7 @@ import java.time.LocalTime;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class Attendance{
+public class Attendance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -28,20 +26,16 @@ public class Attendance{
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 
-    @Column
+    @Column(nullable = false)
     LocalDate date;
 
+    // Thời gian vào sớm nhất trong ngày
     @Column
-    LocalTime timeIn;
+    LocalTime firstCheckIn;
 
+    // Thời gian ra muộn nhất trong ngày
     @Column
-    LocalTime timeOut;
-
-    @Enumerated(EnumType.STRING)
-    Shift shift;
-
-    @Column
-    boolean onTime;
+    LocalTime lastCheckOut;
 
     @Column
     String location;

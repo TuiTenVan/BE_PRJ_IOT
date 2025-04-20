@@ -27,8 +27,8 @@ public class CreatedAccountConfig {
     ApplicationRunner createAccount(IAccountRepository accountRepository) {
         return args -> {
             if(accountRepository.findByUsername("hanhnv").isEmpty()) {
-                Optional<Role> roleOptional = roleRepository.findByName("Admin");
-                Role role = roleOptional.get();
+                Optional<Role> roleOptional = roleRepository.findByName("admin");
+                Role role = roleOptional.orElseGet(() -> roleRepository.save(Role.builder().name("admin").status(1).build()));
                 Account account = Account.builder()
                         .username("hanhnv")
                         .password(passwordEncoder.encode("123456"))

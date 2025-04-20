@@ -2,6 +2,7 @@ package com.demo.iot.controller;
 
 import com.demo.iot.dto.response.ApiResponse;
 import com.demo.iot.dto.response.AttendanceResponse;
+import com.demo.iot.dto.response.UserAttendanceSummaryResponse;
 import com.demo.iot.service.IAttendanceService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.time.LocalDate;
 @RequestMapping("${api.prefix}/attendance")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AttendanceController {
+
     IAttendanceService attendanceService;
 
     @PostMapping
@@ -32,10 +34,10 @@ public class AttendanceController {
         attendanceService.attendance(rfidCode, codeDevice);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.CREATED.value())
-                .message(HttpStatus.CREATED.getReasonPhrase())
+                .message("Attendance recorded successfully")
                 .data("success")
                 .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/filter")
@@ -45,15 +47,56 @@ public class AttendanceController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(value = "shift", required = false) String shift,
-            @RequestParam(value = "studentCode", required = false) String studentCode, @RequestParam(value = "nameDevice", required = false) String name) {
+            @RequestParam(value = "studentCode", required = false) String studentCode,
+            @RequestParam(value = "nameDevice", required = false) String nameDevice) {
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
-        Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(startDate, endDate, shift, studentCode, name, pageable);
+        Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(startDate, endDate, null, studentCode, nameDevice, pageable);
+
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
-                .message(HttpStatus.OK.getReasonPhrase())
+                .message("Filtered attendance fetched")
                 .data(filteredAttendance)
                 .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/statistic/{studentCode}")
+    @PreAuthorize("@requiredPermission.checkPermission('HISTORY_CHECKIN')")
+    public ResponseEntity<?> statisticAttendance(
+            @PathVariable String studentCode,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
+        Page<AttendanceResponse> result = attendanceService.statisticByUser(studentCode, startDate, endDate, pageable);
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("Statistic by user fetched successfully")
+                .data(result)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("@requiredPermission.checkPermission('HISTORY_CHECKIN')")
+    public ResponseEntity<?> summaryAttendanceAllUsers(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserAttendanceSummaryResponse> result = attendanceService.summarizeUserAttendance(startDate, endDate, pageable);
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("Summary attendance for all users fetched successfully")
+                .data(result)
+                .build();
+        return ResponseEntity.ok(response);
     }
 }

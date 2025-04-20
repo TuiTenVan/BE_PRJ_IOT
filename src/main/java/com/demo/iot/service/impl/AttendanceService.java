@@ -1,7 +1,8 @@
 package com.demo.iot.service.impl;
 
-import com.demo.iot.common.Shift;
 import com.demo.iot.dto.response.AttendanceResponse;
+import com.demo.iot.dto.response.UserAttendanceSummaryProjection;
+import com.demo.iot.dto.response.UserAttendanceSummaryResponse;
 import com.demo.iot.entity.Attendance;
 import com.demo.iot.entity.Device;
 import com.demo.iot.entity.User;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,122 +30,134 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AttendanceService implements IAttendanceService {
+
     IAttendanceRepository attendanceRepository;
     IUserRepository userRepository;
     IDeviceRepository deviceRepository;
 
+    @Override
     public void attendance(String rfidCode, String codeDevice) {
         Optional<User> userOptional = userRepository.findByRfidCode(rfidCode);
         Optional<Device> deviceOptional = deviceRepository.findByCodeDevice(codeDevice);
 
-        if (userOptional.isPresent() && userOptional.get().getUsername() != null && userOptional.get().getStudentCode() != null) {
-            LocalDate today = LocalDate.now();
-            LocalTime currentTime = LocalTime.now();
-            User user = userOptional.get();
-
-            String location = deviceOptional.get().getLocation();
-            Shift shift;
-
-            if (currentTime.isAfter(LocalTime.of(6, 0)) && currentTime.isBefore(LocalTime.of(12, 0))) { // 8 den 12
-                shift = Shift.Morning;
-            } else if (currentTime.isAfter(LocalTime.of(12, 0)) && currentTime.isBefore(LocalTime.of(18, 0))) { // 14 den 18
-                shift = Shift.Afternoon;
-            } else { // 19 den 6
-                shift = Shift.OverTime;
-            }
-
-            Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndDateAndShiftAndLocation(user, today, shift, location);
-            Attendance attendance;
-            if (existingAttendance.isPresent()) {
-                attendance = existingAttendance.get();
-                attendance.setTimeOut(currentTime);
-            } else {
-                attendance = getAttendance(user, today, currentTime, shift, deviceOptional.get());
-            }
-            attendanceRepository.save(attendance);
+        if (userOptional.isEmpty() || deviceOptional.isEmpty()) {
+            throw new RuntimeException("User or device not found");
         }
-        else{
-            throw new RuntimeException("RFID code has no information");
-        }
-    }
 
-    private static Attendance getAttendance(User user, LocalDate today, LocalTime currentTime, Shift shift, Device device) {
-        Attendance attendance = new Attendance();
-        attendance.setUser(user);
-        attendance.setDate(today);
-        attendance.setTimeIn(currentTime);
-        attendance.setShift(shift);
-        attendance.setLocation(device.getLocation());
-        boolean onTime = false;
-        if (shift == Shift.Morning) {
-            onTime = !currentTime.isAfter(LocalTime.of(8, 0));
-        } else if (shift == Shift.Afternoon) {
-            onTime = !currentTime.isAfter(LocalTime.of(14, 0));
+        User user = userOptional.get();
+        String location = deviceOptional.get().getLocation();
+        LocalDate today = LocalDate.now();
+        LocalTime currentTime = LocalTime.now();
+
+        Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndDateAndLocation(user, today, location);
+        Attendance attendance;
+
+        if (existingAttendance.isPresent()) {
+            attendance = existingAttendance.get();
+            if (currentTime.isBefore(attendance.getFirstCheckIn())) {
+                attendance.setFirstCheckIn(currentTime);
+            }
+            if (attendance.getLastCheckOut() == null || currentTime.isAfter(attendance.getLastCheckOut())) {
+                attendance.setLastCheckOut(currentTime);
+            }
         } else {
-            onTime = (currentTime.isBefore(LocalTime.of(19, 0)) && currentTime.isAfter(LocalTime.of(18, 0)));
+            attendance = Attendance.builder()
+                    .user(user)
+                    .date(today)
+                    .firstCheckIn(currentTime)
+                    .lastCheckOut(null)
+                    .location(location)
+                    .build();
         }
-        attendance.setOnTime(onTime);
-        return attendance;
+
+        attendanceRepository.save(attendance);
     }
 
     @Override
-    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String studentCode, String nameDevice, Pageable pageable) {
-        Page<Attendance> attendances;
-        if (startDate == null && endDate == null && shift == null && studentCode == null && nameDevice == null) {
-            attendances = attendanceRepository.findAll(pageable);
-        } else {
-            if(shift != null){
-                Shift convertShift = Shift.valueOf(shift);
-                attendances = attendanceRepository.filterAttendance(startDate, endDate, convertShift, studentCode, nameDevice, pageable);
-            }
-            else{
-                attendances = attendanceRepository.filterAttendance(startDate, endDate, null, studentCode, nameDevice,  pageable);
-            }
-        }
-        List<AttendanceResponse> attendanceResponseList = attendances.getContent().stream()
+    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String unusedShift, String studentCode, String nameDevice, Pageable pageable) {
+        Page<Attendance> attendances = attendanceRepository.filterAttendance(startDate, endDate, studentCode, nameDevice, pageable);
+
+        List<AttendanceResponse> attendanceResponses = attendances.getContent().stream()
                 .map(attendance -> AttendanceResponse.builder()
                         .rfidCode(attendance.getUser().getRfidCode())
                         .fullName(attendance.getUser().getUsername())
-                        .attendanceTimeIn(LocalTime.parse(attendance.getTimeIn().format(DateTimeFormatter.ofPattern("HH:mm:ss"))))
-                        .date(attendance.getDate().toString())
-                        .shift(attendance.getShift())
-                        .nameDevice(attendance.getLocation())
                         .studentCode(attendance.getUser().getStudentCode())
-                        .attendanceTimeOut(attendance.getTimeOut() != null ?
-                                LocalTime.parse(attendance.getTimeOut().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) : null)
-                        .onTime(attendance.isOnTime())
+                        .attendanceTimeIn(attendance.getFirstCheckIn())
+                        .attendanceTimeOut(attendance.getLastCheckOut())
+                        .date(attendance.getDate().toString())
+                        .nameDevice(attendance.getLocation())
                         .build())
                 .collect(Collectors.toList());
-        return new PageImpl<>(attendanceResponseList, pageable, attendances.getTotalElements());
+
+        return new PageImpl<>(attendanceResponses, pageable, attendances.getTotalElements());
     }
 
     @Override
     public List<AttendanceResponse> checkUser(String studentCode) {
-        Optional<User> userOptional = userRepository.findByStudentCode(studentCode);
-        if(userOptional.isEmpty()){
-            throw new NotFoundException("User not found");
-        }
-        User user = userOptional.get();
+        User user = userRepository.findByStudentCode(studentCode)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
         LocalDate today = LocalDate.now();
         List<Attendance> attendances = attendanceRepository.findByUserAndDate(user, today);
-        if (attendances.isEmpty()){
-            throw new NotFoundException("Not yet checked");
+
+        if (attendances.isEmpty()) {
+            throw new NotFoundException("Not yet checked in today");
         }
-        List<AttendanceResponse> attendanceResponseList = new ArrayList<>();
-        for(Attendance attendance : attendances){
-            AttendanceResponse attendanceResponse = AttendanceResponse.builder()
+
+        List<AttendanceResponse> responses = new ArrayList<>();
+        for (Attendance attendance : attendances) {
+            responses.add(AttendanceResponse.builder()
                     .fullName(attendance.getUser().getUsername())
-                    .onTime(attendance.isOnTime())
-                    .attendanceTimeIn(LocalTime.parse(attendance.getTimeIn().format(DateTimeFormatter.ofPattern("HH:mm:ss"))))
-                    .attendanceTimeOut(attendance.getTimeOut() != null ?
-                            LocalTime.parse(attendance.getTimeOut().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) : null)
-                    .date(String.valueOf(attendance.getDate()))
-                    .shift(attendance.getShift())
+                    .studentCode(attendance.getUser().getStudentCode())
+                    .attendanceTimeIn(attendance.getFirstCheckIn())
+                    .attendanceTimeOut(attendance.getLastCheckOut())
+                    .date(attendance.getDate().toString())
                     .nameDevice(attendance.getLocation())
-                    .build();
-            attendanceResponseList.add(attendanceResponse);
+                    .build());
         }
-        return attendanceResponseList;
+
+        return responses;
     }
 
+    @Override
+    public Page<AttendanceResponse> statisticByUser(String studentCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        User user = userRepository.findByStudentCode(studentCode)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Page<Attendance> attendancePage = attendanceRepository.findByUserAndDateRange(user, startDate, endDate, pageable);
+
+        List<AttendanceResponse> responses = attendancePage.getContent().stream()
+                .map(attendance -> AttendanceResponse.builder()
+                        .rfidCode(user.getRfidCode())
+                        .fullName(user.getUsername())
+                        .studentCode(user.getStudentCode())
+                        .attendanceTimeIn(attendance.getFirstCheckIn())
+                        .attendanceTimeOut(attendance.getLastCheckOut())
+                        .date(attendance.getDate().toString())
+                        .nameDevice(attendance.getLocation())
+                        .build())
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(responses, pageable, attendancePage.getTotalElements());
+    }
+
+    @Override
+    public Page<UserAttendanceSummaryResponse> summarizeUserAttendance(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        LocalTime standardIn = LocalTime.of(8, 30);
+        LocalTime standardOut = LocalTime.of(17, 30);
+
+        Page<UserAttendanceSummaryProjection> projections = attendanceRepository.summarizeAllUsers(
+                startDate, endDate, standardIn, standardOut, pageable);
+
+        List<UserAttendanceSummaryResponse> responses = projections.getContent().stream()
+                .map(p -> UserAttendanceSummaryResponse.builder()
+                        .fullName(p.getFullName())
+                        .studentCode(p.getStudentCode())
+                        .onTimeDays(p.getOnTimeDays())
+                        .notOnTimeDays(p.getNotOnTimeDays())
+                        .build())
+                .toList();
+
+        return new PageImpl<>(responses, pageable, projections.getTotalElements());
+    }
 }
