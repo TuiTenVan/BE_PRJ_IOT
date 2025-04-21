@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({IllegalArgumentException.class, RuntimeException.class})
-    @ResponseStatus(OK)
+    @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handleIllegalArgumentException(Exception e, WebRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());

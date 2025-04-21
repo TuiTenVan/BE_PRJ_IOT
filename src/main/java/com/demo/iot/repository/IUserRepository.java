@@ -12,16 +12,16 @@ import java.util.Optional;
 public interface IUserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT u FROM User u WHERE LOWER(u.username) " +
             "LIKE LOWER(CONCAT('%', :username, '%')) " +
-            "OR LOWER(u.studentCode) " +
-            "LIKE LOWER(CONCAT('%', :studentCode, '%'))")
-    Page<User> findUser(@Param("username") String username, @Param("studentCode") String studentCode, Pageable pageable);
+            "OR LOWER(u.employeeCode) " +
+            "LIKE LOWER(CONCAT('%', :employeeCode, '%'))")
+    Page<User> findUser(@Param("username") String username, @Param("employeeCode") String employeeCode, Pageable pageable);
 
     Optional<User> findByRfidCode(String username);
-    Optional<User> findByStudentCode(String studentCode);
+    Optional<User> findByEmployeeCode(String employeeCode);
 
     boolean existsByUsernameAndIdNot(String username, Integer id);
     boolean existsByEmailAndIdNot(String email, Integer id);
     boolean existsByPhoneAndIdNot(String phone, Integer id);
-    boolean existsByStudentCodeAndIdNot(String studentCode, Integer id);
+    boolean existsByEmployeeCodeAndIdNot(String employeeCode, Integer id);
 
 }

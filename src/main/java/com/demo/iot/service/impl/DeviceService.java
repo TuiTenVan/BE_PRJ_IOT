@@ -11,24 +11,27 @@ import com.demo.iot.service.IDeviceService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DeviceService implements IDeviceService {
     IDeviceRepository deviceRepository;
     DeviceMapper deviceMapper;
+    SimpMessagingTemplate simpMessagingTemplate;
 
     @Override
     @Transactional
@@ -66,12 +69,36 @@ public class DeviceService implements IDeviceService {
         return devicePage.map(deviceMapper::toDeviceResponse);
     }
 
+    @Scheduled(fixedRate = 10000)
+    @Transactional
+    public void updateOfflineDevices() {
+        List<Device> allDevices = deviceRepository.findAll();
+        List<Device> devicesToUpdate = new ArrayList<>();
+
+        for (Device device : allDevices) {
+            boolean isOnline = checkOnline(device.getModifiedDate());
+            if (!isOnline && "online".equals(device.getStatus())) {
+                device.setStatus("offline");
+                devicesToUpdate.add(device);
+                // Gửi thông báo WebSocket
+                Map<String, String> message = new HashMap<>();
+                message.put("codeDevice", device.getCodeDevice());
+                message.put("status", device.getStatus());
+                simpMessagingTemplate.convertAndSend("/topic/heartbeat", message);
+                log.info("Device {} set OFFLINE", device.getCodeDevice());
+            }
+        }
+
+        if (!devicesToUpdate.isEmpty()) {
+            deviceRepository.saveAll(devicesToUpdate);
+        }
+    }
+
     private boolean checkOnline(LocalDateTime modifiedDate) {
         ZonedDateTime now = LocalDateTime.now().atZone(ZoneId.systemDefault());
         ZonedDateTime deviceModifiedTime = modifiedDate.atZone(ZoneId.systemDefault());
         return deviceModifiedTime.isAfter(now.minusSeconds(30));
     }
-
 
     @Override
     @Transactional
@@ -117,4 +144,5 @@ public class DeviceService implements IDeviceService {
         device.setModifiedDate(LocalDateTime.now());
         deviceRepository.save(device);
     }
+
 }

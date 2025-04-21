@@ -1,5 +1,6 @@
 package com.demo.iot.repository;
 
+import com.demo.iot.common.Shift;
 import com.demo.iot.dto.response.UserAttendanceSummaryProjection;
 import com.demo.iot.entity.Attendance;
 import com.demo.iot.entity.User;
@@ -25,12 +26,12 @@ public interface IAttendanceRepository extends JpaRepository<Attendance, Integer
     @Query("SELECT a FROM Attendance a JOIN a.user u " +
             "WHERE (:startDate IS NULL OR a.date >= :startDate) " +
             "AND (:endDate IS NULL OR a.date <= :endDate) " +
-            "AND (:studentCode IS NULL OR u.studentCode LIKE CONCAT('%', :studentCode, '%')) " +
+            "AND (:employeeCode IS NULL OR u.employeeCode LIKE CONCAT('%', :employeeCode, '%')) " +
             "AND (:location IS NULL OR a.location LIKE CONCAT('%', :location, '%'))")
     Page<Attendance> filterAttendance(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
-            @Param("studentCode") String studentCode,
+            @Param("employeeCode") String employeeCode,
             @Param("location") String location,
             Pageable pageable);
 
@@ -45,7 +46,7 @@ public interface IAttendanceRepository extends JpaRepository<Attendance, Integer
     @Query("""
         SELECT
             u.username AS fullName,
-            u.studentCode AS studentCode,
+            u.employeeCode AS employeeCode,
             SUM(CASE
                 WHEN a.firstCheckIn <= :standardIn AND a.lastCheckOut >= :standardOut THEN 1
                 ELSE 0 END) AS onTimeDays,
@@ -56,7 +57,7 @@ public interface IAttendanceRepository extends JpaRepository<Attendance, Integer
         JOIN a.user u
         WHERE (:startDate IS NULL OR a.date >= :startDate)
           AND (:endDate IS NULL OR a.date <= :endDate)
-        GROUP BY u.username, u.studentCode
+        GROUP BY u.username, u.employeeCode
     """)
     Page<UserAttendanceSummaryProjection> summarizeAllUsers(
             @Param("startDate") LocalDate startDate,

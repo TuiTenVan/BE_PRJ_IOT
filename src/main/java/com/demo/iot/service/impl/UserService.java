@@ -92,12 +92,12 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public Page<UserResponse> findUser(String username, String studentCode, Pageable pageable) {
+    public Page<UserResponse> findUser(String username, String employeeCode, Pageable pageable) {
         Page<User> userPage;
-        if(username == null && studentCode == null) {
+        if(username == null && employeeCode == null) {
             userPage = userRepository.findAll(pageable);
         }else{
-            userPage = userRepository.findUser(username, studentCode, pageable);
+            userPage = userRepository.findUser(username, employeeCode, pageable);
         }
         return userPage.map(userMapper::toUserResponse);
     }
@@ -124,14 +124,14 @@ public class UserService implements IUserService {
         if (userRepository.existsByPhoneAndIdNot(userRequest.getPhone(), id)) {
             throw new IllegalArgumentException("Phone already exists");
         }
-        if (userRepository.existsByStudentCodeAndIdNot(userRequest.getStudentCode(), id)) {
+        if (userRepository.existsByEmployeeCodeAndIdNot(userRequest.getEmployeeCode(), id)) {
             throw new IllegalArgumentException("Student code already exists");
         }
         user.setUsername(userRequest.getUsername());
         user.setEmail(userRequest.getEmail());
         user.setPhone(userRequest.getPhone());
         user.setClassName(userRequest.getClassName());
-        user.setStudentCode(userRequest.getStudentCode());
+        user.setEmployeeCode(userRequest.getEmployeeCode());
         user.setGender(userRequest.getGender());
         userRepository.save(user);
         return userMapper.toUserResponse(user);

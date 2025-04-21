@@ -35,7 +35,6 @@ public class GpsService implements IGpsService {
             deviceEntity.setGoogleMapLink(googleMapLink);
 
             deviceRepository.save(deviceEntity);
-            gpsData.setGoogleMapLink(googleMapLink);
             deviceResponse = deviceMapper.toDeviceResponse(deviceEntity);
         } else {
             log.warn("Device not found for code: {}", gpsData.getCodeDevice());

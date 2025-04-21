@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface IAttendanceService {
     void attendance(String rfidCode, String codeDevice);
-    Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String studentCode, String location, Pageable pageable);
-    List<AttendanceResponse> checkUser(String studentCode);
-    Page<AttendanceResponse> statisticByUser(String studentCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String employeeCode, String location, Pageable pageable);
+    List<AttendanceResponse> checkUser(String employeeCode);
+    Page<AttendanceResponse> statisticByUser(String employeeCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
     Page<UserAttendanceSummaryResponse> summarizeUserAttendance(LocalDate startDate, LocalDate endDate, Pageable pageable);
 }

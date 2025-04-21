@@ -74,14 +74,14 @@ public class AttendanceService implements IAttendanceService {
     }
 
     @Override
-    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String unusedShift, String studentCode, String nameDevice, Pageable pageable) {
-        Page<Attendance> attendances = attendanceRepository.filterAttendance(startDate, endDate, studentCode, nameDevice, pageable);
+    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String unusedShift, String employeeCode, String nameDevice, Pageable pageable) {
+        Page<Attendance> attendances = attendanceRepository.filterAttendance(startDate, endDate, employeeCode, nameDevice, pageable);
 
         List<AttendanceResponse> attendanceResponses = attendances.getContent().stream()
                 .map(attendance -> AttendanceResponse.builder()
                         .rfidCode(attendance.getUser().getRfidCode())
                         .fullName(attendance.getUser().getUsername())
-                        .studentCode(attendance.getUser().getStudentCode())
+                        .employeeCode(attendance.getUser().getEmployeeCode())
                         .attendanceTimeIn(attendance.getFirstCheckIn())
                         .attendanceTimeOut(attendance.getLastCheckOut())
                         .date(attendance.getDate().toString())
@@ -93,8 +93,8 @@ public class AttendanceService implements IAttendanceService {
     }
 
     @Override
-    public List<AttendanceResponse> checkUser(String studentCode) {
-        User user = userRepository.findByStudentCode(studentCode)
+    public List<AttendanceResponse> checkUser(String employeeCode) {
+        User user = userRepository.findByEmployeeCode(employeeCode)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         LocalDate today = LocalDate.now();
@@ -108,7 +108,7 @@ public class AttendanceService implements IAttendanceService {
         for (Attendance attendance : attendances) {
             responses.add(AttendanceResponse.builder()
                     .fullName(attendance.getUser().getUsername())
-                    .studentCode(attendance.getUser().getStudentCode())
+                    .employeeCode(attendance.getUser().getEmployeeCode())
                     .attendanceTimeIn(attendance.getFirstCheckIn())
                     .attendanceTimeOut(attendance.getLastCheckOut())
                     .date(attendance.getDate().toString())
@@ -120,8 +120,8 @@ public class AttendanceService implements IAttendanceService {
     }
 
     @Override
-    public Page<AttendanceResponse> statisticByUser(String studentCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
-        User user = userRepository.findByStudentCode(studentCode)
+    public Page<AttendanceResponse> statisticByUser(String employeeCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        User user = userRepository.findByEmployeeCode(employeeCode)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         Page<Attendance> attendancePage = attendanceRepository.findByUserAndDateRange(user, startDate, endDate, pageable);
@@ -130,7 +130,7 @@ public class AttendanceService implements IAttendanceService {
                 .map(attendance -> AttendanceResponse.builder()
                         .rfidCode(user.getRfidCode())
                         .fullName(user.getUsername())
-                        .studentCode(user.getStudentCode())
+                        .employeeCode(user.getEmployeeCode())
                         .attendanceTimeIn(attendance.getFirstCheckIn())
                         .attendanceTimeOut(attendance.getLastCheckOut())
                         .date(attendance.getDate().toString())
@@ -152,7 +152,7 @@ public class AttendanceService implements IAttendanceService {
         List<UserAttendanceSummaryResponse> responses = projections.getContent().stream()
                 .map(p -> UserAttendanceSummaryResponse.builder()
                         .fullName(p.getFullName())
-                        .studentCode(p.getStudentCode())
+                        .employeeCode(p.getEmployeeCode())
                         .onTimeDays(p.getOnTimeDays())
                         .notOnTimeDays(p.getNotOnTimeDays())
                         .build())

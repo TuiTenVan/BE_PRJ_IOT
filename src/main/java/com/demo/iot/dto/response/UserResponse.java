@@ -15,7 +15,7 @@ public class UserResponse {
     String rfidCode;
     String username;
     String gender;
-    String studentCode;
+    String employeeCode;
     String phone;
     String email;
     String className;
