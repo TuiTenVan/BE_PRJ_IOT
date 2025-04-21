@@ -20,6 +20,9 @@ public class User extends BaseEntity {
     @Column(length = 100)
     String username;
 
+    @Column(length = 100)
+    String fullName;
+
     @Column
     String employeeCode;
 
