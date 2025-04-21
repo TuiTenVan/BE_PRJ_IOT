@@ -77,6 +77,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/check", apiPrefix), "GET"),
                 Pair.of(String.format("%s/device/heartbeat", apiPrefix), "GET"),
                 Pair.of(String.format("%s/gps/location", apiPrefix), "POST"),
+                Pair.of("/ws(/.*)?", "GET"),
+                Pair.of("/ws(/.*)?", "POST"),
 
                 // Swagger
                 Pair.of("/v3/api-docs", "GET"),
@@ -88,6 +90,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/swagger-ui/.*", "GET"),
                 Pair.of("/swagger-ui.html", "GET"),
                 Pair.of("/swagger-ui/index.html", "GET")
+
         );
         String requestPath = request.getServletPath();
         String requestMethod = request.getMethod();

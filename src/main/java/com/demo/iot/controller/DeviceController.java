@@ -14,8 +14,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -25,10 +29,24 @@ import org.springframework.web.bind.annotation.*;
 public class DeviceController {
 
     IDeviceService deviceService;
+    SimpMessagingTemplate simpMessagingTemplate;
 
     @GetMapping("/heartbeat")
     public ResponseEntity<?> checkStatus(@RequestParam String codeDevice) {
         deviceService.heartbeat(codeDevice);
+        if(!codeDevice.contains("online")){
+            try {
+                Map<String, String> message = new HashMap<>();
+                message.put("codeDevice", codeDevice);
+                message.put("status", "online");
+                simpMessagingTemplate.convertAndSend("/topic/heartbeat", message);
+                log.info("Socket heartbeat: {}", message);
+
+            } catch (Exception e) {
+                log.error("Lỗi khi gửi WebSocket heartbeat: ", e);
+            }
+        }
+
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.CREATED.value())
                 .message(HttpStatus.CREATED.getReasonPhrase())
@@ -56,11 +74,13 @@ public class DeviceController {
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
         Page<DeviceResponse> devicePage = deviceService.getAllDevices(pageable);
+
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(HttpStatus.OK.getReasonPhrase())
                 .data(devicePage)
                 .build();
+
         return ResponseEntity.ok(response);
     }
 

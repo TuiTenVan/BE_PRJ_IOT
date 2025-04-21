@@ -74,47 +74,27 @@ public class AttendanceService implements IAttendanceService {
     }
 
     @Override
-    public Page<AttendanceResponse> filterAttendance(
-            LocalDate startDate,
-            LocalDate endDate,
-            String studentCode,
-            String nameDevice,
-            Integer onTime,
-            Pageable pageable) {
-
-        // Mốc giờ đúng quy định
-        LocalTime checkInTime = LocalTime.of(8, 30);
-        LocalTime checkOutTime = LocalTime.of(17, 30);
-
-        // Gọi xuống repository (đã sửa để nhận thêm 2 tham số LocalTime)
-        Page<Attendance> attendances = attendanceRepository.filterAttendance(
-                startDate, endDate, studentCode, nameDevice, onTime, checkInTime, checkOutTime, pageable);
+    public Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String unusedShift, String employeeCode, String nameDevice, Pageable pageable) {
+        Page<Attendance> attendances = attendanceRepository.filterAttendance(startDate, endDate, employeeCode, nameDevice, pageable);
 
         List<AttendanceResponse> attendanceResponses = attendances.getContent().stream()
-                .map(attendance -> {
-                    LocalTime timeIn = attendance.getFirstCheckIn();
-                    LocalTime timeOut = attendance.getLastCheckOut();
-                    boolean isOnTime = !timeIn.isAfter(checkInTime) && !timeOut.isBefore(checkOutTime);
-
-                    return AttendanceResponse.builder()
-                            .rfidCode(attendance.getUser().getRfidCode())
-                            .fullName(attendance.getUser().getUsername())
-                            .studentCode(attendance.getUser().getStudentCode())
-                            .attendanceTimeIn(timeIn)
-                            .attendanceTimeOut(timeOut)
-                            .date(attendance.getDate().toString())
-                            .nameDevice(attendance.getLocation())
-                            .onTime(isOnTime)
-                            .build();
-                })
+                .map(attendance -> AttendanceResponse.builder()
+                        .rfidCode(attendance.getUser().getRfidCode())
+                        .fullName(attendance.getUser().getUsername())
+                        .employeeCode(attendance.getUser().getEmployeeCode())
+                        .attendanceTimeIn(attendance.getFirstCheckIn())
+                        .attendanceTimeOut(attendance.getLastCheckOut())
+                        .date(attendance.getDate().toString())
+                        .nameDevice(attendance.getLocation())
+                        .build())
                 .collect(Collectors.toList());
 
         return new PageImpl<>(attendanceResponses, pageable, attendances.getTotalElements());
     }
 
     @Override
-    public List<AttendanceResponse> checkUser(String studentCode) {
-        User user = userRepository.findByStudentCode(studentCode)
+    public List<AttendanceResponse> checkUser(String employeeCode) {
+        User user = userRepository.findByEmployeeCode(employeeCode)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         LocalDate today = LocalDate.now();
@@ -128,7 +108,7 @@ public class AttendanceService implements IAttendanceService {
         for (Attendance attendance : attendances) {
             responses.add(AttendanceResponse.builder()
                     .fullName(attendance.getUser().getUsername())
-                    .studentCode(attendance.getUser().getStudentCode())
+                    .employeeCode(attendance.getUser().getEmployeeCode())
                     .attendanceTimeIn(attendance.getFirstCheckIn())
                     .attendanceTimeOut(attendance.getLastCheckOut())
                     .date(attendance.getDate().toString())
@@ -140,31 +120,22 @@ public class AttendanceService implements IAttendanceService {
     }
 
     @Override
-    public Page<AttendanceResponse> statisticByUser(String studentCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
-        User user = userRepository.findByStudentCode(studentCode)
+    public Page<AttendanceResponse> statisticByUser(String employeeCode, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        User user = userRepository.findByEmployeeCode(employeeCode)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         Page<Attendance> attendancePage = attendanceRepository.findByUserAndDateRange(user, startDate, endDate, pageable);
 
         List<AttendanceResponse> responses = attendancePage.getContent().stream()
-                .map(attendance -> {
-                    LocalTime timeIn = attendance.getFirstCheckIn();
-                    LocalTime timeOut = attendance.getLastCheckOut();
-                    boolean onTime = timeIn != null && timeOut != null &&
-                            !timeIn.isAfter(LocalTime.of(8, 30)) &&     // check-in <= 08:30
-                            !timeOut.isBefore(LocalTime.of(17, 30));    // check-out >= 17:30
-
-                    return AttendanceResponse.builder()
-                            .rfidCode(user.getRfidCode())
-                            .fullName(user.getUsername())
-                            .studentCode(user.getStudentCode())
-                            .attendanceTimeIn(timeIn)
-                            .attendanceTimeOut(attendance.getLastCheckOut())
-                            .date(attendance.getDate().toString())
-                            .nameDevice(attendance.getLocation())
-                            .onTime(onTime)
-                            .build();
-                })
+                .map(attendance -> AttendanceResponse.builder()
+                        .rfidCode(user.getRfidCode())
+                        .fullName(user.getUsername())
+                        .employeeCode(user.getEmployeeCode())
+                        .attendanceTimeIn(attendance.getFirstCheckIn())
+                        .attendanceTimeOut(attendance.getLastCheckOut())
+                        .date(attendance.getDate().toString())
+                        .nameDevice(attendance.getLocation())
+                        .build())
                 .collect(Collectors.toList());
 
         return new PageImpl<>(responses, pageable, attendancePage.getTotalElements());
@@ -181,7 +152,7 @@ public class AttendanceService implements IAttendanceService {
         List<UserAttendanceSummaryResponse> responses = projections.getContent().stream()
                 .map(p -> UserAttendanceSummaryResponse.builder()
                         .fullName(p.getFullName())
-                        .studentCode(p.getStudentCode())
+                        .employeeCode(p.getEmployeeCode())
                         .onTimeDays(p.getOnTimeDays())
                         .notOnTimeDays(p.getNotOnTimeDays())
                         .build())

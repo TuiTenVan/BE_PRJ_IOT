@@ -12,5 +12,4 @@ public class GpsDataRequest {
     String codeDevice;
     String longitude;
     String latitude;
-    String googleMapLink;
 }

@@ -25,8 +25,8 @@ public class UserCheckController {
     IAttendanceService attendanceService;
 
     @GetMapping("")
-    public ResponseEntity<?> check(@RequestParam(value = "studentCode") String studentCode){
-        List<AttendanceResponse> attendanceResponseList = attendanceService.checkUser(studentCode);
+    public ResponseEntity<?> check(@RequestParam(value = "employeeCode") String employeeCode){
+        List<AttendanceResponse> attendanceResponseList = attendanceService.checkUser(employeeCode);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(HttpStatus.OK.getReasonPhrase())

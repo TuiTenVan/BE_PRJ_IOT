@@ -15,5 +15,5 @@ public class UserRequest {
     String phone;
     String className;
     String gender;
-    String studentCode;
+    String employeeCode;
 }

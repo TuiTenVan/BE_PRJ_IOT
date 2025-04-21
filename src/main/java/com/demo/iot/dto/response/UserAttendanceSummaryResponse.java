@@ -7,7 +7,7 @@ import lombok.Data;
 @Builder
 public class UserAttendanceSummaryResponse {
     String fullName;
-    String studentCode;
+    String employeeCode;
     int onTimeDays;
     int notOnTimeDays;
 }

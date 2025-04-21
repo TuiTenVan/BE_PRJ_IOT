@@ -16,7 +16,7 @@ public class UserResponse {
     String username;
     String fullName;
     String gender;
-    String studentCode;
+    String employeeCode;
     String phone;
     String email;
     String className;

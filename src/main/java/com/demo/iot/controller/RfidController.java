@@ -8,7 +8,14 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 
 @RestController
 @Slf4j
@@ -17,18 +24,28 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RfidController {
     IUserService userService;
+    SimpMessagingTemplate messagingTemplate;
+
 
     @PostMapping("")
-    public ResponseEntity<?> createRfid(@RequestParam(value = "rfidCode") String rfidCode,
-                                        @RequestParam(value = "deviceCode") String deviceCode){
+    public ResponseEntity<?> createRfid(@RequestParam("rfidCode") String rfidCode,
+                                        @RequestParam("deviceCode") String deviceCode) {
         userService.createRfid(rfidCode, deviceCode);
+        try {
+            messagingTemplate.convertAndSend("/topic/rfid-created", rfidCode);
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi WebSocket RFID created: ", e);
+        }
+        log.info("RFID created successfully: {}", rfidCode);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.CREATED.value())
                 .message(HttpStatus.CREATED.getReasonPhrase())
                 .data("success")
                 .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
 
     @DeleteMapping("/{rfid-code}")
     public ResponseEntity<?> deleteRfid(@PathVariable("rfid-code") String rfidCode,
