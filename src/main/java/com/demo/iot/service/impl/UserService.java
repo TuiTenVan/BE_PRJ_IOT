@@ -133,6 +133,7 @@ public class UserService implements IUserService {
         user.setClassName(userRequest.getClassName());
         user.setEmployeeCode(userRequest.getEmployeeCode());
         user.setGender(userRequest.getGender());
+        user.setFullName(userRequest.getFullName());
         userRepository.save(user);
         return userMapper.toUserResponse(user);
     }
