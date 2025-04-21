@@ -14,6 +14,7 @@ public class UserResponse {
     Integer id;
     String rfidCode;
     String username;
+    String fullName;
     String gender;
     String studentCode;
     String phone;

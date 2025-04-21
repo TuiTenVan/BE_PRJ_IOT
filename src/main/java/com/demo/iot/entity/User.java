@@ -21,6 +21,9 @@ public class User extends BaseEntity {
     String username;
 
     @Column
+    String fullName;
+
+    @Column
     String studentCode;
 
     @Column

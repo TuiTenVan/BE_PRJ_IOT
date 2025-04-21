@@ -147,15 +147,24 @@ public class AttendanceService implements IAttendanceService {
         Page<Attendance> attendancePage = attendanceRepository.findByUserAndDateRange(user, startDate, endDate, pageable);
 
         List<AttendanceResponse> responses = attendancePage.getContent().stream()
-                .map(attendance -> AttendanceResponse.builder()
-                        .rfidCode(user.getRfidCode())
-                        .fullName(user.getUsername())
-                        .studentCode(user.getStudentCode())
-                        .attendanceTimeIn(attendance.getFirstCheckIn())
-                        .attendanceTimeOut(attendance.getLastCheckOut())
-                        .date(attendance.getDate().toString())
-                        .nameDevice(attendance.getLocation())
-                        .build())
+                .map(attendance -> {
+                    LocalTime timeIn = attendance.getFirstCheckIn();
+                    LocalTime timeOut = attendance.getLastCheckOut();
+                    boolean onTime = timeIn != null && timeOut != null &&
+                            !timeIn.isAfter(LocalTime.of(8, 30)) &&     // check-in <= 08:30
+                            !timeOut.isBefore(LocalTime.of(17, 30));    // check-out >= 17:30
+
+                    return AttendanceResponse.builder()
+                            .rfidCode(user.getRfidCode())
+                            .fullName(user.getUsername())
+                            .studentCode(user.getStudentCode())
+                            .attendanceTimeIn(timeIn)
+                            .attendanceTimeOut(attendance.getLastCheckOut())
+                            .date(attendance.getDate().toString())
+                            .nameDevice(attendance.getLocation())
+                            .onTime(onTime)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return new PageImpl<>(responses, pageable, attendancePage.getTotalElements());
