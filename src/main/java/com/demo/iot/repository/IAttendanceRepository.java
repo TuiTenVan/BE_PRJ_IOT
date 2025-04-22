@@ -45,7 +45,7 @@ public interface IAttendanceRepository extends JpaRepository<Attendance, Integer
 
     @Query("""
         SELECT
-            u.username AS fullName,
+            u.fullName AS fullName,
             u.employeeCode AS employeeCode,
             SUM(CASE
                 WHEN a.firstCheckIn <= :standardIn AND a.lastCheckOut >= :standardOut THEN 1
@@ -57,7 +57,7 @@ public interface IAttendanceRepository extends JpaRepository<Attendance, Integer
         JOIN a.user u
         WHERE (:startDate IS NULL OR a.date >= :startDate)
           AND (:endDate IS NULL OR a.date <= :endDate)
-        GROUP BY u.username, u.employeeCode
+        GROUP BY u.fullName, u.employeeCode
     """)
     Page<UserAttendanceSummaryProjection> summarizeAllUsers(
             @Param("startDate") LocalDate startDate,

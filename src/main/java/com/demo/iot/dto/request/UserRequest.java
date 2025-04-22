@@ -16,5 +16,4 @@ public class UserRequest {
     String className;
     String gender;
     String employeeCode;
-    String fullName;
 }
