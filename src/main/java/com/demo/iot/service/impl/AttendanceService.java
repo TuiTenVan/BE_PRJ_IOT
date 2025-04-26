@@ -43,7 +43,9 @@ public class AttendanceService implements IAttendanceService {
         if (userOptional.isEmpty() || deviceOptional.isEmpty()) {
             throw new RuntimeException("User or device not found");
         }
-
+        if( userOptional.get().getEmployeeCode() == null || userOptional.get().getUsername() == null) {
+            throw new RuntimeException("Unregistered users");
+        }
         User user = userOptional.get();
         String location = deviceOptional.get().getLocation();
         LocalDate today = LocalDate.now();

@@ -3,13 +3,13 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3307/smartHome?createDatabaseIfNotExist=true  # Kết nối đến MySQL cục bộ
-    username: root                       # Tài khoản MySQL mặc định trong XAMPP
-    password:                            # Mặc định tài khoản root không có mật khẩu trong XAMPP, nếu có mật khẩu, hãy điền vào đây
+    url: jdbc:mysql://localhost:3306/smartHome?createDatabaseIfNotExist=true
+    username: root
+    password: 123456
 
   jpa:
     hibernate:
-      ddl-auto: update  # Sử dụng 'update' để tự động tạo hoặc cập nhật các bảng dựa trên các entity trong JPA
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
