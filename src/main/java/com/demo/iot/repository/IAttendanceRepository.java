@@ -57,11 +57,13 @@ public interface IAttendanceRepository extends JpaRepository<Attendance, Integer
         JOIN a.user u
         WHERE (:startDate IS NULL OR a.date >= :startDate)
           AND (:endDate IS NULL OR a.date <= :endDate)
+          AND (:employeeCode IS NULL OR u.employeeCode LIKE %:employeeCode%)
         GROUP BY u.fullName, u.employeeCode
     """)
     Page<UserAttendanceSummaryProjection> summarizeAllUsers(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
+            @Param("employeeCode") String employeeCode,
             @Param("standardIn") LocalTime standardIn,
             @Param("standardOut") LocalTime standardOut,
             Pageable pageable);

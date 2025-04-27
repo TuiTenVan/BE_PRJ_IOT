@@ -13,5 +13,5 @@ public interface IAttendanceService {
     Page<AttendanceResponse> filterAttendance(LocalDate startDate, LocalDate endDate, String shift, String employeeCode, String location, Pageable pageable);
     List<AttendanceResponse> checkUser(String employeeCode);
     Page<AttendanceResponse> statisticByUser(String employeeCode, LocalDate startDate, LocalDate endDate, Pageable pageable);
-    Page<UserAttendanceSummaryResponse> summarizeUserAttendance(LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<UserAttendanceSummaryResponse> summarizeUserAttendance(LocalDate startDate, LocalDate endDate, String employeeCode, Pageable pageable);
 }

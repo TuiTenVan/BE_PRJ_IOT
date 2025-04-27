@@ -58,7 +58,7 @@ public class AttendanceController {
             @RequestParam(value = "employeeCode", required = false) String employeeCode,
             @RequestParam(value = "nameDevice", required = false) String nameDevice) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "firstCheckIn"));
         Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(startDate, endDate, null, employeeCode, nameDevice, pageable);
 
         ApiResponse<?> response = ApiResponse.builder()
@@ -78,7 +78,7 @@ public class AttendanceController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "firstCheckIn"));
         Page<AttendanceResponse> result = attendanceService.statisticByUser(employeeCode, startDate, endDate, pageable);
 
         ApiResponse<?> response = ApiResponse.builder()
@@ -94,11 +94,12 @@ public class AttendanceController {
     public ResponseEntity<?> summaryAttendanceAllUsers(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String employeeCode,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<UserAttendanceSummaryResponse> result = attendanceService.summarizeUserAttendance(startDate, endDate, pageable);
+        Page<UserAttendanceSummaryResponse> result = attendanceService.summarizeUserAttendance(startDate, endDate, employeeCode, pageable);
 
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())

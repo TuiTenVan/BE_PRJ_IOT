@@ -1,5 +1,6 @@
 package com.demo.iot.service.impl;
 
+import com.demo.iot.common.Shift;
 import com.demo.iot.dto.response.AttendanceResponse;
 import com.demo.iot.dto.response.UserAttendanceSummaryProjection;
 import com.demo.iot.dto.response.UserAttendanceSummaryResponse;
@@ -26,11 +27,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AttendanceService implements IAttendanceService {
-
     IAttendanceRepository attendanceRepository;
     IUserRepository userRepository;
     IDeviceRepository deviceRepository;
@@ -43,24 +44,37 @@ public class AttendanceService implements IAttendanceService {
         if (userOptional.isEmpty() || deviceOptional.isEmpty()) {
             throw new RuntimeException("User or device not found");
         }
-        if( userOptional.get().getEmployeeCode() == null || userOptional.get().getUsername() == null) {
+        if (userOptional.get().getEmployeeCode() == null || userOptional.get().getUsername() == null) {
             throw new RuntimeException("Unregistered users");
         }
+
         User user = userOptional.get();
         String location = deviceOptional.get().getLocation();
         LocalDate today = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
+
+        // Giờ chuẩn cho ca sáng và ca chiều
+        LocalTime standardInMorning = LocalTime.of(8, 30);
+        LocalTime standardOutMorning = LocalTime.of(12, 0);
+        LocalTime afternoonStart = LocalTime.of(13, 30);
+        LocalTime standardOutAfternoon = LocalTime.of(18, 0);
 
         Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndDateAndLocation(user, today, location);
         Attendance attendance;
 
         if (existingAttendance.isPresent()) {
             attendance = existingAttendance.get();
-            if (currentTime.isBefore(attendance.getFirstCheckIn())) {
-                attendance.setFirstCheckIn(currentTime);
-            }
-            if (attendance.getLastCheckOut() == null || currentTime.isAfter(attendance.getLastCheckOut())) {
-                attendance.setLastCheckOut(currentTime);
+
+            if (currentTime.isBefore(afternoonStart)) {
+                if (attendance.getFirstCheckIn() == null || currentTime.isBefore(attendance.getFirstCheckIn())) {
+                    attendance.setFirstCheckIn(currentTime);
+                    attendance.setShift(Shift.Morning);
+                }
+            } else {
+                if (attendance.getLastCheckOut() == null || currentTime.isAfter(attendance.getLastCheckOut())) {
+                    attendance.setLastCheckOut(currentTime);
+                    attendance.setShift(Shift.Afternoon);
+                }
             }
         } else {
             attendance = Attendance.builder()
@@ -70,6 +84,14 @@ public class AttendanceService implements IAttendanceService {
                     .lastCheckOut(null)
                     .location(location)
                     .build();
+
+            if (currentTime.isBefore(afternoonStart)) {
+                attendance.setOnTime(currentTime.isAfter(standardInMorning) && currentTime.isBefore(standardOutMorning) ? 0 : 1);
+                attendance.setShift(Shift.Morning);
+            } else {
+                attendance.setOnTime(currentTime.isBefore(standardOutAfternoon) ? 0 : 1);
+                attendance.setShift(Shift.Afternoon);
+            }
         }
 
         attendanceRepository.save(attendance);
@@ -87,6 +109,8 @@ public class AttendanceService implements IAttendanceService {
                         .employeeCode(attendance.getUser().getEmployeeCode())
                         .attendanceTimeIn(attendance.getFirstCheckIn())
                         .attendanceTimeOut(attendance.getLastCheckOut())
+                        .shift(attendance.getShift().name())
+                        .onTime(attendance.getOnTime())
                         .date(attendance.getDate().toString())
                         .nameDevice(attendance.getLocation())
                         .build())
@@ -139,6 +163,8 @@ public class AttendanceService implements IAttendanceService {
                         .attendanceTimeIn(attendance.getFirstCheckIn())
                         .attendanceTimeOut(attendance.getLastCheckOut())
                         .date(attendance.getDate().toString())
+                        .shift(attendance.getShift().name())
+                        .onTime(attendance.getOnTime())
                         .nameDevice(attendance.getLocation())
                         .build())
                 .collect(Collectors.toList());
@@ -147,12 +173,12 @@ public class AttendanceService implements IAttendanceService {
     }
 
     @Override
-    public Page<UserAttendanceSummaryResponse> summarizeUserAttendance(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public Page<UserAttendanceSummaryResponse> summarizeUserAttendance(LocalDate startDate, LocalDate endDate, String employeeCode, Pageable pageable) {
         LocalTime standardIn = LocalTime.of(8, 30);
         LocalTime standardOut = LocalTime.of(17, 30);
 
         Page<UserAttendanceSummaryProjection> projections = attendanceRepository.summarizeAllUsers(
-                startDate, endDate, standardIn, standardOut, pageable);
+                startDate, endDate, employeeCode, standardIn, standardOut, pageable);
 
         List<UserAttendanceSummaryResponse> responses = projections.getContent().stream()
                 .map(p -> UserAttendanceSummaryResponse.builder()

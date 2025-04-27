@@ -21,6 +21,7 @@ public class GpsController {
     @PostMapping("/location")
     public ResponseEntity<String> receiveGpsData(@RequestBody GpsDataRequest gpsData) {
         DeviceResponse deviceResponse = gpsService.saveGpsData(gpsData);
+        log.info("GPS data received: {}", deviceResponse.getGoogleMapLink());
         return ResponseEntity.ok("GPS data received: {}" + deviceResponse.getGoogleMapLink());
     }
 }

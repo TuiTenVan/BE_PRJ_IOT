@@ -1,5 +1,6 @@
 package com.demo.iot.entity;
 
+import com.demo.iot.common.Shift;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.persistence.*;
@@ -39,4 +40,10 @@ public class Attendance {
 
     @Column
     String location;
+
+    @Column
+    Integer onTime;
+
+    @Enumerated(EnumType.STRING)
+    private Shift shift;
 }

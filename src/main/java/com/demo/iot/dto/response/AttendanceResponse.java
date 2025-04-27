@@ -16,8 +16,9 @@ public class AttendanceResponse {
     String fullName;
     LocalTime attendanceTimeIn;
     String employeeCode;
-    Shift shift;
+    String shift;
     String userName;
+    Integer onTime;
     String date;
     String nameDevice;
     LocalTime attendanceTimeOut;

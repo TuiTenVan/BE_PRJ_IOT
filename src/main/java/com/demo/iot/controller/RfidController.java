@@ -8,14 +8,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
 
 @RestController
 @Slf4j
@@ -25,7 +19,6 @@ import java.util.HashMap;
 public class RfidController {
     IUserService userService;
     SimpMessagingTemplate messagingTemplate;
-
 
     @PostMapping("")
     public ResponseEntity<?> createRfid(@RequestParam("rfidCode") String rfidCode,
@@ -42,15 +35,19 @@ public class RfidController {
                 .message(HttpStatus.CREATED.getReasonPhrase())
                 .data("success")
                 .build();
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
 
     @DeleteMapping("/{rfid-code}")
     public ResponseEntity<?> deleteRfid(@PathVariable("rfid-code") String rfidCode,
                                         @RequestParam(value = "deviceCode") String deviceCode){
         userService.deleteRfid(rfidCode, deviceCode);
+        try {
+            messagingTemplate.convertAndSend("/topic/rfid-deleted", rfidCode);
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi WebSocket RFID deleted: ", e);
+        }
+        log.info("RFID deleted successfully: {}", rfidCode);
         ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(HttpStatus.OK.getReasonPhrase())
