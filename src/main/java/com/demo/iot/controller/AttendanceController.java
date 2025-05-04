@@ -58,7 +58,7 @@ public class AttendanceController {
             @RequestParam(value = "employeeCode", required = false) String employeeCode,
             @RequestParam(value = "nameDevice", required = false) String nameDevice) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "firstCheckIn"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"));
         Page<AttendanceResponse> filteredAttendance = attendanceService.filterAttendance(startDate, endDate, null, employeeCode, nameDevice, pageable);
 
         ApiResponse<?> response = ApiResponse.builder()
